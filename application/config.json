@@ -8,5 +8,9 @@
             }
         }
     },
-    "password_salt_length": 4
+    "password_salt_length": 4,
+    "users": {
+        "jwt_secret": "STRONG_SECRET",
+        "token_duration_seconds": 86400
+    }
 }
