@@ -1,12 +1,10 @@
 from hashlib import sha256
-import logging
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from application.util import get_db, get_logger
+from application.util import get_db, get_logger, get_config
 from application.db import schemas, crud
-from application import util
 
 import datetime
 
@@ -15,7 +13,7 @@ import jwt
 logger = get_logger()
 router = APIRouter()
 
-config = util.get_config().get("users", {})
+config = get_config().get("users", {})
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
 
@@ -53,6 +51,7 @@ def create_user(
     user: schemas.UserCreate,
     db: Session = Depends(get_db),
 ):
+    logger.info("user is trying to register")
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="username already registered")
@@ -63,13 +62,16 @@ def create_user(
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
+    logger.info("a user is trying to login")
     user = crud.get_user_by_username(db, form_data.username)
     if not user:
+        logger.info("user did not exist")
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     hashed_password = sha256(
         (user.hashed_password[:4] + form_data.password).encode()
     ).hexdigest()
     if hashed_password != user.hashed_password[4:]:
+        logger("user had entered a wrong password")
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     token = jwt.encode(
@@ -81,7 +83,7 @@ def login(
         config.get("jwt_secret", "STRONG_SECRET"),
         algorithm="HS256",
     )
-
+    logger.info("user successfully logged in")
     return {"access_token": token, "token_type": "bearer"}
 
 
