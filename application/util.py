@@ -1,4 +1,6 @@
 import logging
+from application.config import CONFIG_DATA
+
 
 def get_logger(severity="INFO"):
     logging.basicConfig(
@@ -8,3 +10,7 @@ def get_logger(severity="INFO"):
     logger = logging.getLogger(__name__)
     logger.setLevel(getattr(logging, severity))
     return logger
+
+
+def get_config():
+    return CONFIG_DATA
