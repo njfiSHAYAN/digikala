@@ -71,7 +71,7 @@ def login(
         (user.hashed_password[:4] + form_data.password).encode()
     ).hexdigest()
     if hashed_password != user.hashed_password[4:]:
-        logger("user had entered a wrong password")
+        logger.info("user had entered a wrong password")
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     token = jwt.encode(
