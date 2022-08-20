@@ -1,5 +1,6 @@
 import logging
 from application.config import CONFIG_DATA
+from application.db import database
 
 
 def get_logger(severity="INFO"):
@@ -14,3 +15,11 @@ def get_logger(severity="INFO"):
 
 def get_config():
     return CONFIG_DATA
+
+
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

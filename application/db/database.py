@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from application import config, util
+from application import util
 
 logger = util.get_logger()
 config = util.get_config()

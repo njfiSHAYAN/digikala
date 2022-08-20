@@ -12,7 +12,7 @@ class Users(Base):
     username = Column(String)
     hashed_password = Column(String)
 
-    access = relationship("Access_Log", back_populates="user")
+    access = relationship("Access_Logs", back_populates="user")
 
 
 class Qoutes(Base):
@@ -30,6 +30,6 @@ class Access_Logs(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(Integer, ForeignKey("User.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    user = relationship("User", back_populates="access")
+    user = relationship("Users", back_populates="access")
