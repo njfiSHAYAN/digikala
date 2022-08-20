@@ -3,14 +3,17 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from .database import Base
+from application.util import get_config
+
+salt_len = get_config().get("password_salt_length", 4)
 
 
 class Users(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String)
-    hashed_password = Column(String)
+    username = Column(String(32))
+    hashed_password = Column(String(70 + salt_len))
 
     access = relationship("Access_Logs", back_populates="user")
 
@@ -20,7 +23,7 @@ class Qoutes(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     qoute = Column(Text)
-    author = Column(String)
+    author = Column(String(64))
     number = Column(Integer)
     blockqoute = Column(Text)
 

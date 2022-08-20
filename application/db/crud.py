@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
+
 from . import models, schemas
 import random
 from hashlib import sha256
@@ -44,10 +46,9 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
     return db_user
 
 
-def get_some_qoutes(db: Session, skip: int = 0, limit: int = 100):
-    q = db.query(models.Qoutes).offset(skip).limit(limit).all()
-    rand = random.randrange(0, q.count())
-    return q[rand]
+def get_some_qoutes(db: Session, skip: int = 0, limit: int = 5):
+    q = db.query(models.Qoutes).order_by(func.random()).offset(skip).limit(limit).all()
+    return q
 
 
 def create_qoute(db: Session, qoute: schemas.QouteCreate):
