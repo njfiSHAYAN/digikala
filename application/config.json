@@ -14,7 +14,7 @@
         "token_duration_seconds": 86400
     },
     "redis": {
-        "host": "localhost",
+        "host": "redis",
         "port": "6379",
         "db": 0,
         "password": "redis"
