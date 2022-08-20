@@ -19,7 +19,7 @@ class Qoutes(Base):
     __tablename__ = "qoute"
 
     id = Column(Integer, primary_key=True, index=True)
-    quote = Column(Text)
+    qoute = Column(Text)
     author = Column(String)
     number = Column(Integer)
     blockqoute = Column(Text)

@@ -19,7 +19,7 @@ class User(UserBase):
 
 
 class QouteBase(BaseModel):
-    quote: str
+    qoute: str
     author: str
     number: int
     blockqoute: str
