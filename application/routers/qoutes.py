@@ -28,7 +28,7 @@ def add_qoute(
     qoute: schemas.QouteCreate = Body(...),
 ):
     logger.info(f"user {user} is trying to add a qoute")
-    crud.create_access_log(db, user.id)
+    crud.create_access_log(db, user)
     logger.info("qoute added successfully")
     return crud.create_qoute(db, qoute=qoute)
 

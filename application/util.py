@@ -27,7 +27,7 @@ def get_db():
 
 
 def get_redis():
-    redis_conf = get_config().get("redid", {})
+    redis_conf = get_config().get("redis", {})
     r = redis.Redis(
         host=redis_conf.get("host", "localhost"),
         port=redis_conf.get("port", 6379),
