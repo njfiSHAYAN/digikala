@@ -12,5 +12,11 @@
     "users": {
         "jwt_secret": "STRONG_SECRET",
         "token_duration_seconds": 86400
+    },
+    "redis": {
+        "host": "localhost",
+        "port": "6379",
+        "db": 0,
+        "password": "redis"
     }
 }
