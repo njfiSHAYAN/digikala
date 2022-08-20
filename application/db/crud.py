@@ -65,3 +65,12 @@ def create_access_log(db: Session, user_id: int):
     db.commit()
     db.refresh(db_log)
     return db_log
+
+
+def get_access_logs(db: Session, user_id: int):
+    return [
+        l.time_created
+        for l in db.query(models.Access_Logs).filter(
+            models.Access_Logs.user_id == user_id
+        )
+    ]
