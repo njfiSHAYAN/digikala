@@ -1,6 +1,7 @@
 import logging
 from application.config import CONFIG_DATA
 from application.db import database
+import redis
 
 
 def get_logger(severity="INFO"):
@@ -23,3 +24,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_redis():
+    redis_conf = get_config().get("redid", {})
+    r = redis.Redis(
+        host=redis_conf.get("host", "localhost"),
+        port=redis_conf.get("port", 6379),
+        db=redis_conf.get("db", 0),
+        password=redis_conf.get("password", "redis"),
+    )
+    return r
