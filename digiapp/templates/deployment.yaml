@@ -47,14 +47,24 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.image.environments }}
           env:
+            - name: CONFIG_ADDR
+              value: {{ template "digiapp.workingdir" }}/{{ .Values.secretConfig.configFilePath }}/{{ .Values.secretConfig.config_file_name }}
           {{- range $key, $val := .Values.image.environments }}
             - name: {{ $key }}
               value: {{ $val | quote }}
           {{- end }}
+          {{- if .Values.secretConfig.enabled }}
+          volumeMounts:
+            - name: {{ .Values.secretConfig.volume_name }}
+              mountPath: {{ template "digiapp.workingdir" }}/{{ .Values.secretConfig.configFilePath }}
           {{- end }}
-
+      {{- if .Values.secretConfig.enabled }}
+      volumes:
+        - name: {{ .Values.secretConfig.volume_name }}
+          secret:
+            secretName: {{ .Values.secretConfig.secret_name }}
+      {{- end}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

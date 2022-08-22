@@ -44,7 +44,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
+    - host: digiapp.local
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -67,3 +67,31 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# secretConfig defines config.json file
+# config.json file containes information about db, redis and some configs used in app
+secretConfig:
+  enabled: true
+  data: 
+    "ewogICAgImRiIjogewogICAgICAgICJlbmdpbmUiOiAic3FsaXRlIiwKICAgICAgICAic3FsX2Fs\
+    Y2hlbXlfdXJsIjogInNxbGl0ZTovLy8uL3NxbF9hcHAuZGIiLAogICAgICAgICJjcmVhdGVfZW5n\
+    aW5lX2FyZ3MiOiB7CiAgICAgICAgICAgICJjb25uZWN0X2FyZ3MiOiB7CiAgICAgICAgICAgICAg\
+    ICAiY2hlY2tfc2FtZV90aHJlYWQiOiBmYWxzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAg\
+    fSwKICAgICJwYXNzd29yZF9zYWx0X2xlbmd0aCI6IDQsCiAgICAidXNlcnMiOiB7CiAgICAgICAg\
+    Imp3dF9zZWNyZXQiOiAiU1RST05HX1NFQ1JFVCIsCiAgICAgICAgInRva2VuX2R1cmF0aW9uX3Nl\
+    Y29uZHMiOiA4NjQwMAogICAgfSwKICAgICJyZWRpcyI6IHsKICAgICAgICAiaG9zdCI6ICJyZWRp\
+    cyIsCiAgICAgICAgInBvcnQiOiAiNjM3OSIsCiAgICAgICAgImRiIjogMCwKICAgICAgICAicGFz\
+    c3dvcmQiOiAicmVkaXMiCiAgICB9Cn0="
+  
+  secret_name: app-secret
+  secret_type: Opaque
+
+  # volume_name is the name of the volume which is mounted to the pod as config secret
+  volume_name: vol
+
+  # configFilePath is the path to app config dir relative to workdir in container
+  # config file will be read from this directory
+  configFilePath: application/config/
+
+  # config_file_name is the name of the file inside configFilePath where config data is stored
+  config_file_name: config.json

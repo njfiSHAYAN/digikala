@@ -61,3 +61,16 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{/*
+define kubernetes apiVersion for secret
+*/}}
+{{- define "digiapp.apiVersion" -}}
+v1
+{{- end }}
+
+{{/*
+define container workingdir
+*/}}
+{{- define "digiapp.workingdir" -}}
+/app
+{{- end }}
