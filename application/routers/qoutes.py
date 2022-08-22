@@ -33,7 +33,7 @@ def add_qoute(
     return crud.create_qoute(db, qoute=qoute)
 
 
-@router.post("/qoutes/", response_model=List[schemas.Qoute])
+@router.get("/qoutes/", response_model=List[schemas.Qoute])
 def add_qoute(
     db: Session = Depends(get_db),
     user: schemas.User = Depends(get_user),
