@@ -73,15 +73,7 @@ affinity: {}
 secretConfig:
   enabled: true
   data: 
-    "ewogICAgImRiIjogewogICAgICAgICJlbmdpbmUiOiAic3FsaXRlIiwKICAgICAgICAic3FsX2Fs\
-    Y2hlbXlfdXJsIjogInNxbGl0ZTovLy8uL3NxbF9hcHAuZGIiLAogICAgICAgICJjcmVhdGVfZW5n\
-    aW5lX2FyZ3MiOiB7CiAgICAgICAgICAgICJjb25uZWN0X2FyZ3MiOiB7CiAgICAgICAgICAgICAg\
-    ICAiY2hlY2tfc2FtZV90aHJlYWQiOiBmYWxzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAg\
-    fSwKICAgICJwYXNzd29yZF9zYWx0X2xlbmd0aCI6IDQsCiAgICAidXNlcnMiOiB7CiAgICAgICAg\
-    Imp3dF9zZWNyZXQiOiAiU1RST05HX1NFQ1JFVCIsCiAgICAgICAgInRva2VuX2R1cmF0aW9uX3Nl\
-    Y29uZHMiOiA4NjQwMAogICAgfSwKICAgICJyZWRpcyI6IHsKICAgICAgICAiaG9zdCI6ICJyZWRp\
-    cyIsCiAgICAgICAgInBvcnQiOiAiNjM3OSIsCiAgICAgICAgImRiIjogMCwKICAgICAgICAicGFz\
-    c3dvcmQiOiAicmVkaXMiCiAgICB9Cn0="
+    "ewogICAgImRiIjogewogICAgICAgICJlbmdpbmUiOiAic3FsaXRlIiwKICAgICAgICAic3FsX2FsY2hlbXlfdXJsIjogInNxbGl0ZTovLy8uL3NxbF9hcHAuZGIiLAogICAgICAgICJjcmVhdGVfZW5naW5lX2FyZ3MiOiB7CiAgICAgICAgICAgICJjb25uZWN0X2FyZ3MiOiB7CiAgICAgICAgICAgICAgICAiY2hlY2tfc2FtZV90aHJlYWQiOiBmYWxzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfSwKICAgICJwYXNzd29yZF9zYWx0X2xlbmd0aCI6IDQsCiAgICAidXNlcnMiOiB7CiAgICAgICAgImp3dF9zZWNyZXQiOiAiU1RST05HX1NFQ1JFVCIsCiAgICAgICAgInRva2VuX2R1cmF0aW9uX3NlY29uZHMiOiA4NjQwMAogICAgfSwKICAgICJyZWRpcyI6IHsKICAgICAgICAiaG9zdCI6ICJ0aGVyZWRpcy1tYXN0ZXIiLAogICAgICAgICJwb3J0IjogIjYzNzkiLAogICAgICAgICJkYiI6IDAsCiAgICAgICAgInBhc3N3b3JkIjogInJlZGlzIgogICAgfQp9"
   
   secret_name: app-secret
   secret_type: Opaque
@@ -95,3 +87,9 @@ secretConfig:
 
   # config_file_name is the name of the file inside configFilePath where config data is stored
   config_file_name: config.json
+
+
+redis:
+  fullnameOverride: theredis
+  auth:
+    password: redis
