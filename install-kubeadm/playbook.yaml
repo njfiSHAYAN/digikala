@@ -1,0 +1,228 @@
+---
+- hosts: "all"
+  remote_user: ubuntu
+  become: yes
+  gather_facts: false
+  vars:
+    kube_install:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - vim
+      - software-properties-common
+  
+  tasks:
+
+   - name: export to bash
+     shell: |
+             export HTTP_PROXY="http://groupc:digidigi@192.227.178.9:30128/"
+             export http_proxy="http://groupc:digidigi@192.227.178.9:30128/"
+             export HTTPS_PROXY="http://groupc:digidigi@192.227.178.9:30128/"
+             export https_proxy="http://groupc:digidigi@192.227.178.9:30128/"
+
+##################### swapoff
+   - name: Make the Swap inactive
+     command: swapoff -a
+
+   - name: Remove Swap entry from /etc/fstab.
+     lineinfile:
+       dest: /etc/fstab
+       regexp: swap
+       state: absent
+#####################
+
+##################### start block Forwarding ipv4
+   - name: Forwarding IPv4 and letting iptables see bridged traffic
+     shell: |
+             echo overlay > /etc/modules-load.d/k8s.conf
+             echo br_netfilter >> /etc/modules-load.d/k8s.conf
+             modprobe overlay
+             modprobe br_netfilter
+             cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+             net.bridge.bridge-nf-call-iptables  = 1
+             net.bridge.bridge-nf-call-ip6tables = 1
+             net.ipv4.ip_forward                 = 1
+             EOF
+             sysctl --system
+
+   - name: Install Prerequisites for Kubernetes
+     apt: 
+       update_cache: true
+       name: "{{ kube_install }}"
+       state: present
+########################### end of block IPV4
+
+
+########################### start of block containerD
+   - name: Add Docker’s official GPG key
+     apt_key:
+       url: https://download.docker.com/linux/ubuntu/gpg
+       state: present 
+
+   - name: Add Docker Repository
+     apt_repository:
+       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+       state: present
+       filename: docker
+       update_cache: yes
+
+   - name: Install containerd.
+     apt: 
+       name:
+         - containerd.io
+       state: present
+
+   - name: Configure containerd.
+     file:
+       path: /etc/containerd
+       state: directory
+
+   - name: Configure containerd.
+     shell: |
+             echo [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc] > /etc/containerd/config.toml
+             echo "  "[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options] >> /etc/containerd/config.toml
+             echo "    "SystemdCgroup = true >> /etc/containerd/config.toml
+
+   - name: Enable containerd service, and start it.
+     systemd: 
+       name: containerd
+       state: restarted
+       enabled: yes
+       daemon-reload: yes   
+
+################################ end of block containerD
+
+##################### start of block kubernetes
+
+   - name: apt_key kubernetes
+     apt_key: 
+       url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+
+   - name: Add Kubernetes Repository
+     apt_repository:
+       update_cache: true
+       #repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+       repo: deb http://apt.kubernetes.io/ kubernetes-xenial main 
+       state: present
+       filename: kubernetes
+       mode: 0600
+
+   - name: Installing Kubernetes Cluster Packages.
+     apt: 
+       name:
+         - kubeadm
+         - kubectl
+         - kubelet
+       state: present
+
+   - name: on hold kubelet & kubectl & kubeadm
+     shell: |
+       apt-mark hold kubelet kubeadm kubectl
+######################### end of block kubernetes
+
+
+######################### for install images
+   - name: kubeadm config images pull
+     shell: |
+       kubeadm config images pull
+#########################        
+
+################ start for kubectl init(master)
+- hosts: "ma-1"
+  remote_user: ubuntu
+  become: true
+  tasks:
+          
+   - name: Intilizing Kubernetes Cluster
+     command: kubeadm init --pod-network-cidr=192.168.0.0/24  --apiserver-advertise-address=37.32.24.217 --control-plane-endpoint=37.32.24.217
+
+   - name: create and copy admin.conf to .kube/config
+     command: "{{ item }}"
+     with_items: 
+       - mkdir -p /home/ubuntu/.kube
+       - cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+       - chown ubuntu:ubuntu /home/ubuntu/.kube/config
+
+   - pause: seconds=10
+
+   - name: Remove the cache directory.
+     become_user: ubuntu
+     become: yes
+     file: 
+       path: /home/ubuntu/.kube/cache    #{{ ansible_user }}/.kube/cache
+       state: absent
+
+   - name: Get the token for joining the nodes with Kuberentes master.
+     shell: kubeadm token create  --print-join-command
+     register: kubernetes_join_command
+
+   - debug:
+       msg: "{{ kubernetes_join_command.stdout }}"
+
+   - name: Copy join command to local file.
+     become: false
+     local_action: copy content="{{ kubernetes_join_command.stdout_lines[0] }}" dest="/tmp/kubernetes_join_command" mode=0777
+
+   - set_fact:
+       kubernetes_join_command_end: "{{ kubernetes_join_command.stdout }}"
+     delegate_to: "{{ item }}"
+     loop:
+       - ma-2
+       - wo-1
+
+   - name: Install calico pod network
+     shell: |
+           export KUBECONFIG=/home/ubuntu/.kube/config
+           kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+          #  kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.0/manifests/tigera-operator.yaml
+          #  kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.0/manifests/custom-resources.yaml
+
+
+   - name: create cert for master
+     shell: kubeadm init phase upload-certs --upload-certs --skip-headers=true --skip-log-headers=true | tail -n1
+     register: cert_key
+       
+   - set_fact:
+       cert_master_key: "{{ cert_key.stdout }}"
+############################### end of init kubeadm(master)
+
+
+############################### start for join node to master
+- hosts: "ma-2"
+  remote_user: ubuntu
+  become: true
+  tasks:
+
+   - name: Join Master replicas to cluster
+     command: "{{ hostvars['ma-1']['kubernetes_join_command_end'] }} --control-plane --certificate-key {{ hostvars['ma-1']['cert_master_key'] }} "
+############################### end of join node to master
+
+###############################   workers
+- hosts: wo-1
+  remote_user: ubuntu
+  become: yes
+  gather_facts: true
+  tasks:
+
+   - name: Copy join command to worker nodes.
+     copy:
+       src: /tmp/kubernetes_join_command_end
+       dest: /tmp/kubernetes_join_command_end
+       mode: 0777   
+
+   - name: Join the Worker nodes with the master.
+     command: sh /tmp/kubernetes_join_command_end
+     register: joined_or_not
+   - debug:
+       msg: "{{ joined_or_not.stdout }}"
+
+- hosts: "masters"
+  tasks:
+  
+   - name: Configure kubectl command auto-completion.
+     lineinfile:
+       dest: /home/{{ ansible_user }}/.bashrc
+       line: 'source <(kubectl completion bash)'
+       insertafter: EOF
+...
