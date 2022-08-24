@@ -1,0 +1,2 @@
+- name: create cluster
+  import_playbook: "install-kubeadm/playbook.yaml"
