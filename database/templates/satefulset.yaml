@@ -1,0 +1,226 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "database.fullname" . }}
+  namespace: {{ include "database.namespace" . | quote }}
+  labels:
+    {{- include "database.labels" . | nindent 4 }}
+
+spec:
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: 
+    {{- include "database.labels" . | nindent 6 }}
+  serviceName: {{ printf "%s-headless" (include "database.fullname" .) | trunc 63 | trimSuffix "-" }}
+  updateStrategy:
+    type: {{ .Values.updateStrategy.type }}
+    {{- if (eq "Recreate" .Values.updateStrategy.type) }}
+    rollingUpdate: null
+    {{- end }}
+  template:
+    metadata:
+      labels: 
+        {{- include "database.labels" . | nindent 8 }}
+    spec:
+      initContainers:
+      - name: init-mysql
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+          ordinal=${BASH_REMATCH[1]}
+          echo [mysqld] > /mnt/conf.d/server-id.cnf
+          echo server-id=$((100 + $ordinal)) >> /mnt/conf.d/server-id.cnf
+
+          cp /mnt/config-map/mysql.cnf /mnt/conf.d/mysql.cnf
+          sed -i "s/%node-name%/$POD_NAME/g" /mnt/conf.d/mysql.cnf
+          sed -i "s/%node-address%/$POD_IP/g" /mnt/conf.d/mysql.cnf
+          sed -i "s/%cluster-name%/'{{ .Values.galera.name }}'/g" /mnt/conf.d/mysql.cnf
+          {{- $fullName := include "database.fullname" . }}
+          {{- $releaseName := include "database.namespace" . }}
+          {{- $clusterDomain := .Values.clusterDomain }}
+          {{- $initialCluster := list }}
+          {{- range $e, $i := until (int .Values.replicaCount) }}
+          {{- $initialCluster = append $initialCluster (printf "%s-%d.%s-headless.%s.svc.%s" $fullName $i $fullName $releaseName $clusterDomain) }}
+          {{- end }}
+          sed -i "/s/%cluster-address%/'{{ printf "gcomm://%s" (join "," $initialCluster) }}'/g/" /mnt/conf.d/mysql.cnf
+
+        volumeMounts:
+        - name: conf
+          mountPath: /mnt/conf.d
+        - name: config-map
+          mountPath: /mnt/config-map
+      containers:
+        - name: "mariadb"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command:
+          - bash
+          - "-c"
+          - |
+            set -ex
+            [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+            ordinal=${BASH_REMATCH[1]}
+            CMD="/usr/local/bin/docker-entrypoint.sh mysqld"
+            {{- $bootstrapFromNode := int .Values.galera.bootstrap.bootstrapFromNode }}
+
+            if [[ $ordinal -eq "{{ $bootstrapFromNode }}" ]]; then
+              CMD="$CMD --wsrep-new-cluster"
+            fi 
+            exec $CMD
+          env:
+            - name: MARIADB_ROOT_USER
+              value: {{ .Values.rootUser.user | quote }}
+            {{- if .Values.db.allowEmptyPassword }}
+            - name: MARIADB_ALLOW_EMPTY_ROOT_PASSWORD
+              value: "1"
+            {{- else }}
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "database.secretName" . }}
+                  key: mariadb-root-password
+            {{- end }}
+            {{- if .Values.db.user }}
+            - name: MARIADB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "database.secretName" . }}
+                  key: mariadb-password
+            {{- end }}
+            - name: MARIADB_DATABASE
+              value: {{ .Values.db.name | quote }}
+
+          ports:
+            - name: mysql
+              containerPort: {{ .Values.containerPorts.mysql }}
+            - name: galera
+              containerPort: {{ .Values.containerPorts.galera }}
+            - name: ist
+              containerPort: {{ .Values.containerPorts.ist }}
+            - name: sst
+              containerPort: {{ .Values.containerPorts.sst }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - -ec
+                - |
+                  password_aux="${MARIADB_ROOT_PASSWORD:-}"
+                  exec mysql -u"${MARIADB_ROOT_USER}" -p"${password_aux}" -e "select * from mysql.wsrep_cluster_members;"
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - -ec
+                - |
+                  password_aux="${MARIADB_ROOT_PASSWORD:-}"
+                  exec mysqladmin status -u"${MARIADB_ROOT_USER}" -p"${password_aux}"
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: "{{ .Values.metrics.image.repository }}:{{ .Values.metrics.image.tag }}"
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy | quote }}
+          env:
+            - name: MARIADB_METRICS_EXTRA_FLAGS
+              value: {{ default "" (join " " .Values.metrics.extraFlags) | quote }}
+            - name: MARIADB_ROOT_USER
+              value: {{ .Values.rootUser.user | quote }}
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "database.secretName" . }}
+                  key: mariadb-root-password
+          
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              password_aux="${MARIADB_ROOT_PASSWORD:-}"
+              DATA_SOURCE_NAME="${MARIADB_ROOT_USER}:${password_aux}@(localhost:3306)/" /bin/mysqld_exporter $MARIADB_METRICS_EXTRA_FLAGS
+          ports:
+            - name: metrics
+              containerPort: 9104
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          {{- if .Values.metrics.resources }}
+          resources: {{- toYaml .Values.metrics.resources | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      volumes:
+        - name: conf
+          emptyDir: {}
+        - name: config-map
+          configMap:
+            name: {{ printf "%s-configmap" (include "database.fullname" .) }}
+        {{- if and .Values.persistence.enabled .Values.persistence.existingClaim }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- else if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+  {{- else if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels: {{- include "database.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+        {{- if .Values.persistence.selector }}
+        selector: {{- include "database.render" (dict "value" .Values.persistence.selector "context" $) | nindent 10 }}
+        {{- end -}}
+        {{- include "database.storage.class" (dict "persistence" .Values.persistence "global" .Values.global) | nindent 8 }}
+{{- end }}

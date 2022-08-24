@@ -1,0 +1,12 @@
+{{ if .Values.mysqlConfiguration }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-configmap" (include "database.fullname" .) }}
+  namespace: {{ include "database.namespace" . | quote }}
+  labels: 
+    {{- include "database.labels" . | nindent 4 }}
+data:
+  mysql.cnf: |
+{{ .Values.mysqlConfiguration | indent 4 }}
+{{ end }}
