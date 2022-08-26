@@ -6,9 +6,9 @@ metadata:
     {{- include "monitoring.labels" . | nindent 4 }}
   namespace: {{ .Values.namespace }}
 data:
-  prometheus_rules.yaml: |-
+  {{ .Values.prometheus.configurations.rules.file_name }}: |-
     {{ tpl .Values.prometheus.configurations.rules.data . | nindent 4 }}
-  prometheus.yaml: |-
+  {{ .Values.prometheus.configurations.mainConfig.file_name }}: |-
     {{ tpl .Values.prometheus.configurations.mainConfig.data . | nindent 4 }}
-  prometheus_web.yaml: |-
+  {{ .Values.prometheus.configurations.webConfig.file_name }}: |-
     {{ tpl .Values.prometheus.configurations.webConfig.data . | nindent 4 }}
