@@ -37,16 +37,19 @@ service:
   port: 80
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
+    - host: monitoring.local
       paths:
         - path: /
-          pathType: ImplementationSpecific
+          pathType: Prefix
+          # make sure to serviceName and servicePort this using tpl function
+          serviceName: "{{ .Values.prometheus.service.name }}"
+          servicePort: "{{ .Values.prometheus.service.port }}"
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -88,7 +91,7 @@ prometheus:
   image:
     repository: docker.io/prom/prometheus
     pullPolicy: IfNotPresent
-    tag: "1.0.0"
+    tag: "v2.38.0"
   
   serviceAccount:
     create: true
@@ -104,7 +107,16 @@ prometheus:
   tolerations: []
 
   nodeSelector: {}
+
+
+  service:
+    port: 9090
+    name: prometheusui
   
+  # ingress:
+  #   # enabled: true
+  #   annotations: {}
+  #   className: {}
 
 nodeExporter:
 
