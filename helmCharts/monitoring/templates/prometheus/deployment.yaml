@@ -37,7 +37,7 @@ spec:
           imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
           args:
           {{- range .Values.prometheus.runArgs }}
-            - {{ . }}
+            - {{ tpl . $ }}
           {{- end}}
           ports:
             - name: http
@@ -53,6 +53,14 @@ spec:
               port: 9090
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: prometheus-configs
+              mountPath: {{ .Values.prometheus.configurations.config_dir }}
+      volumes:
+        - name: prometheus-configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.prometheus.cmname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

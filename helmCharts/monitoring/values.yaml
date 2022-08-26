@@ -81,6 +81,10 @@ tolerations: []
 affinity: {}
 
 
+# namespace is the namespace on which kubernetes resources will be deployed on
+namespace: "monitoring"
+
+# prometheus is used to deploy prometheus configurations
 prometheus:
   fullnameOverride: ""
   podAnnotations: {}
@@ -98,8 +102,13 @@ prometheus:
     name: ""
     annotations: {}
 
+  # runArgs:
+  #   - "--config.file=/etc/prometheus/prometheus.yml"
+  #   - "--storage.tsdb.path=/prometheus/"
+
+
   runArgs:
-    - "--config.file=/etc/prometheus/prometheus.yml"
+    - "--config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.mainConfig.file_name }}"
     - "--storage.tsdb.path=/prometheus/"
 
   affinity: {}
@@ -113,6 +122,7 @@ prometheus:
     name: prometheusui
   
   clusterRole:
+    name: ""
     apiGroupsList:
       - apiGroups: [""]
         resources:
@@ -138,6 +148,29 @@ prometheus:
           - /metrics
         verbs: 
           - get
+  
+  # configurations contains different prometheus config data, such as main config, web config and rules
+  # configurations exist in _helpers_prometheus.tpl file.
+  # in the config map file configs written here are imported using tpl function.
+  # in fact in this file "include" doesn't include any thing. tpl function includes data you specified here
+  configurations:
+    configMapName: ""
+    # prometheus configs will be stored in config_dir
+    config_dir: "/etc/prometheus/"
+    mainConfig:
+      file_name: "prometheus.yaml" 
+      data: |-
+        {{ include "monitoring.prometheus.mainConfig" . }}
+    rules:
+      file_name: "rules.yaml" 
+      data: |-
+        {{ include "monitoring.prometheus.rules" . }}
+    # DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
+    webConfig: 
+      file_name: "web.yaml"
+      data: |-
+        {{ include "monitoring.prometheus.webConfig" . }}
+
 
 
 nodeExporter:

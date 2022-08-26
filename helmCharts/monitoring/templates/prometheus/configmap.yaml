@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring.prometheus.cmname" . }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+  namespace: {{ .Values.namespace }}
+data:
+  prometheus_rules.yaml: |-
+    {{ tpl .Values.prometheus.configurations.rules.data . | nindent 4 }}
+  prometheus.yaml: |-
+    {{ tpl .Values.prometheus.configurations.mainConfig.data . | nindent 4 }}
+  prometheus_web.yaml: |-
+    {{ tpl .Values.prometheus.configurations.webConfig.data . | nindent 4 }}
