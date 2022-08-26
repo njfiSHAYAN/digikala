@@ -87,6 +87,7 @@ namespace: "monitoring"
 # prometheus is used to deploy prometheus configurations
 prometheus:
   fullnameOverride: ""
+  nameOverride: ""
   podAnnotations: {}
   imagePullSecrets: []
 
