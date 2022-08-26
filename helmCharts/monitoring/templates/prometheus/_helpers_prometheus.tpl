@@ -36,3 +36,11 @@ Create the name of the service account to use
 ""
 {{- end }}
 {{- end }}
+
+
+{{/*
+define cluster role name
+*/}}
+{{- define "monitoring.prometheus.clusterRoleNmae" -}}
+{{- default "prometheus-role" .Values.prometheus.clusterRole.name }}
+{{- end }}

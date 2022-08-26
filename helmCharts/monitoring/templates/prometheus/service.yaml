@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.prometheus.service.name }}
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
+  namespace: {{ .Values.namespace }}
 spec:
   type: {{ .Values.service.type }}
   ports:

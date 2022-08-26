@@ -1,9 +1,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "monitoring.prometheus.fullname" . }}
+  name: {{ include "monitoring.prometheus.clusterRoleNmae" . }}
   labels:
     {{- include "monitoring.prometheus.selectorLabels" . | nindent 4 }}
+  namespace: {{ .Values.namespace }}
 rules:
   {{- range .Values.prometheus.clusterRole.apiGroupsList }}
   - apiGroups: 
