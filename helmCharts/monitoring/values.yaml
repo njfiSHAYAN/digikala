@@ -102,14 +102,10 @@ prometheus:
     name: ""
     annotations: {}
 
-  # runArgs:
-  #   - "--config.file=/etc/prometheus/prometheus.yml"
-  #   - "--storage.tsdb.path=/prometheus/"
-
-
   runArgs:
     - "--config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.mainConfig.file_name }}"
     - "--storage.tsdb.path=/prometheus/"
+    - "--web.config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.webConfig.file_name }}"
 
   affinity: {}
 
@@ -165,11 +161,14 @@ prometheus:
       file_name: "rules.yaml" 
       data: |-
         {{ include "monitoring.prometheus.rules" . }}
-    # DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
+    # TODO: DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
     webConfig: 
       file_name: "web.yaml"
       data: |-
         {{ include "monitoring.prometheus.webConfig" . }}
+      authentication:
+        enabled: true
+        authHeader: "Basic YWRtaW46MTIz"
 
 
 
