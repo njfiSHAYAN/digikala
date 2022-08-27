@@ -198,8 +198,10 @@ prometheus rules
 prometheus web config
 */}}
 {{- define "monitoring.prometheus.webConfig" -}}
+{{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
 basic_auth_users:
     admin: $2b$12$5kZyqLyJOTWX9FxJdsAWw.tLzRlPPemchLEZLdtn0YRiAO1bdEMJa  # password is 123
+{{ end }}
 {{- end }}
 
 
