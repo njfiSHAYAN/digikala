@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "monitoring.nodeExporter.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.nodeExporter.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+ {{- include "monitoring.nodeExporter.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: node-exporter
+    protocol: TCP
+    port: {{ .Values.nodeExporter.service.port }}
+    targetPort: 9100
