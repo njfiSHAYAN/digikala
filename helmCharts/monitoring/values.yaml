@@ -225,7 +225,24 @@ nodeExporter:
       prometheus.io/port:   '9100'
 
 alertManager:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+  containerName: alert-manager
 
+  image:
+    repository: docker.io/prom/alertmanager
+    pullPolicy: IfNotPresent
+    tag: "v0.24.0"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 
 grafana:
