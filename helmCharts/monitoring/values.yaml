@@ -244,6 +244,9 @@ alertManager:
       cpu: 100m
       memory: 128Mi
 
+  service:
+    port: 9093
+    name: alertmanager
 
 grafana:
 
