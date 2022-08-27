@@ -50,6 +50,12 @@ ingress:
           # make sure to serviceName and servicePort this using tpl function
           serviceName: "{{ .Values.prometheus.service.name }}"
           servicePort: "{{ .Values.prometheus.service.port }}"
+    - host: alertman.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: "{{ .Values.alertManager.service.name }}"
+          servicePort: "{{ .Values.alertManager.service.port }}"
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
