@@ -22,6 +22,10 @@ spec:
       containers:
       - name: {{ .Values.alertManager.containerName }}
         image: {{ .Values.alertManager.image.repository }}:{{ .Values.alertManager.image.tag }}
+        args:
+        {{- range .Values.alertManager.runArgs }}
+          - {{ tpl . $ }}
+        {{- end}}
         ports:
         - containerPort: 9093
         {{- with .Values.alertManager.resources }}
@@ -33,3 +37,11 @@ spec:
             cpu: {{ .requests.cpu }}
             memory: {{ .requests.memory }}
         {{- end }}
+        volumeMounts:
+          - name: configs
+            mountPath: {{ .Values.alertManager.configurations.config_dir }}
+      volumes:
+        - name: configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.alertManager.cmname" . }}
