@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ include "monitoring.nodeExporter.fullname" . }}
+  name: {{ .Values.nodeExporter.service.name }}
   namespace: {{ .Values.namespace }}
   {{- with .Values.nodeExporter.service.annotations }}
   annotations:

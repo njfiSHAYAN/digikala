@@ -179,6 +179,12 @@ nodeExporter:
   podAnnotations: {}
   imagePullSecrets: []
 
+  image:
+    repository: docker.io/prom/node-exporter
+    pullPolicy: IfNotPresent
+    tag: "v1.3.1"
+
+
   containerName: node-exporter
 
   # in runArgs there is no need to include path to /sys and /
