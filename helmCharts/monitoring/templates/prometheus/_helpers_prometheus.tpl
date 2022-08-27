@@ -48,13 +48,13 @@ global:
   scrape_interval: 5s
   evaluation_interval: 5s
 rule_files:
-  - /etc/prometheus/prometheus.rules
+  - {{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.rules.file_name }}
 alerting:
   alertmanagers:
   - scheme: http
     static_configs:
     - targets:
-      - "alertmanager.monitoring.svc:9093"
+      - "{{ .Values.alertManager.service.name }}.{{ .Values.namespace }}.svc:{{ .Values.alertManager.service.port }}"
 
 scrape_configs:
   - job_name: 'node-exporter'
@@ -191,6 +191,19 @@ scrape_configs:
 prometheus rules
 */}}
 {{- define "monitoring.prometheus.rules" -}}
+groups:
+- name: Instances
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 2m
+    labels:
+      severity: page
+    # Prometheus templates apply here in the annotation and label fields of the alert.
+    annotations:
+      description: '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 5 minutes.'
+      summary: 'Instance {{ `{{ $labels.instance }}` }} down'
+
 {{- end }}
 
 
