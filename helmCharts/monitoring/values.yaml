@@ -271,6 +271,26 @@ grafana:
 
 
 
+blackbox:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+  containerName: alert-manager
 
-
-
+  image:
+    repository: prom/blackbox-exporter
+    pullPolicy: IfNotPresent
+    tag: "v0.22.0"
+    port: 9115
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    port: 9115
+    name: blackbox
