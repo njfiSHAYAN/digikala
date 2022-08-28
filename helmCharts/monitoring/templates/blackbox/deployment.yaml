@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "monitoring.blackbox.selectorLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+  name: {{ include "monitoring.blackbox.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "monitoring.blackbox.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+          {{- with .Values.blackbox.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "monitoring.blackbox.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Values.blackbox.containerName }}
+        image: {{ .Values.blackbox.image.repository }}:{{ .Values.blackbox.image.tag }}
+        args:
+        {{- range .Values.blackbox.runArgs }}
+          - {{ tpl . $ }}
+        {{- end}}
+        ports:
+        - containerPort: {{ .Values.blackbox.image.port }}
+        {{- with .Values.blackbox.resources }}
+        resources:
+          limits:
+            cpu: {{ .limits.cpu }}
+            memory: {{ .limits.memory }}
+          requests:
+            cpu: {{ .requests.cpu }}
+            memory: {{ .requests.memory }}
+        {{- end }}
