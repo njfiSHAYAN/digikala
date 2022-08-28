@@ -254,6 +254,19 @@ alertManager:
     port: 9093
     name: alertmanager
 
+  runArgs:
+    - "--config.file={{ .Values.alertManager.configurations.config_dir }}{{ .Values.alertManager.configurations.mainConfig.file_name }}"
+
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/alertManager/"
+    mainConfig:
+      file_name: alertManager.yaml
+      data: |-
+        {{ include "monitoring.alertManager.mainConfig" . }}
+
+
+
 grafana:
 
 
