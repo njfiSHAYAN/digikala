@@ -37,3 +37,11 @@ spec:
             cpu: {{ .requests.cpu }}
             memory: {{ .requests.memory }}
         {{- end }}
+        volumeMounts:
+          - name: configs
+            mountPath: {{ .Values.blackbox.configurations.config_dir }}
+      volumes:
+        - name: configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.blackbox.cmname" . }}

@@ -35,3 +35,9 @@ modules:
 {{- end }}
 
 
+{{/*
+configmap name for blackbox configs
+*/}}
+{{- define "monitoring.blackbox.cmname" -}}
+{{ default (printf "%s-conf" (include "monitoring.blackbox.fullname" .)) .Values.blackbox.configurations.configMapName }}
+{{- end }}
