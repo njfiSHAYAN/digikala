@@ -41,7 +41,7 @@ route:
   group_by: ['alertname']
   group_wait: 10s
   group_interval: 10s
-  repeat_interval: 10s
+  repeat_interval: 30m
   receiver: 'email'
 receivers:
 - name: 'email'
