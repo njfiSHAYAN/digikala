@@ -15,9 +15,23 @@ data:
         for: 2m
         labels:
           severity: crititcal
+          domain: instances
         annotations:
           description: '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 2 minutes.'
           summary: 'Instance {{ `{{ $labels.instance }}` }} down'
+    - name: BlackboxProbe
+      rules:
+      - alert: AppDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+          domain: application
+        annotations:
+          description:  '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 2 minutes.'
+          summary: 'Application {{ `{{ $labels.instance }}` }} down'
+
+
 
   {{ .Values.prometheus.configurations.webConfig.file_name }}: |-
     {{- with .Values.prometheus.configurations.webConfig.authentication }}
@@ -167,7 +181,7 @@ data:
       - job_name: 'blackbox'
         metrics_path: /probe
         params:
-          target: [{{ .Values.prometheus.blackboxTarget | quote }}]
+          target: [{{ .Values.prometheus.blackboxTarget }}/hello]
           module: ["http_2xx"]
 
         kubernetes_sd_configs:
