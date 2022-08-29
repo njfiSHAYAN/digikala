@@ -119,6 +119,10 @@ prometheus:
       cpu: 250m
       memory: 512Mi
   
+  # target parameter for blackbox.
+  # TODO: it should be set to application address
+  blackboxTarget: "google.com"
+  
   # configurations contains different prometheus config data, such as main config, web config and rules
   # configurations exist in _helpers_prometheus.tpl file.
   # in the config map file configs written here are imported using tpl function.
@@ -129,17 +133,12 @@ prometheus:
     config_dir: "/etc/prometheus/"
     mainConfig:
       file_name: "prometheus.yaml" 
-      data: |-
-        {{ include "monitoring.prometheus.mainConfig" . }}
+      scrape_interval: 5s
     rules:
       file_name: "rules.yaml" 
-      data: |-
-        {{ include "monitoring.prometheus.rules" . }}
     # TODO: DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
     webConfig: 
       file_name: "web.yaml"
-      data: |-
-        {{ include "monitoring.prometheus.webConfig" . }}
       authentication:
         enabled: true
         username: admin
