@@ -22,18 +22,6 @@ app.kubernetes.io/monitoringTask: blackbox
 {{- end }}
 
 
-{{/*
-blackbox config
-*/}}
-{{- define "monitoring.blackbox.mainConfig" -}}
-modules:
-  http_2xx:
-    prober: http
-    http:
-      preferred_ip_protocol: "ip4"
-
-{{- end }}
-
 
 {{/*
 configmap name for blackbox configs

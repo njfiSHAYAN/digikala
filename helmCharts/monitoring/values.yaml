@@ -305,6 +305,10 @@ blackbox:
       file_name: blackbox.yaml
       data: |-
         {{ include "monitoring.blackbox.mainConfig" . }}
+  
+  securityContext: {}
+  imagePullSecrets: []
+  podSecurityContext: {}
 
   runArgs:
     - "--config.file={{ .Values.blackbox.configurations.config_dir }}{{ .Values.blackbox.configurations.mainConfig.file_name }}"

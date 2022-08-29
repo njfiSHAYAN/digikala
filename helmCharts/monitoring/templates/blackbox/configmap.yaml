@@ -5,5 +5,10 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   {{ .Values.blackbox.configurations.mainConfig.file_name }}: |-
-    {{- tpl .Values.blackbox.configurations.mainConfig.data . | nindent 4 }}
+    modules:
+      http_2xx:
+        prober: http
+        http:
+          preferred_ip_protocol: "ip4"
+
   
