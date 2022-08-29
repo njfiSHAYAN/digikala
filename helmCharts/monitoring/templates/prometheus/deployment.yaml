@@ -62,11 +62,15 @@ spec:
           volumeMounts:
             - name: prometheus-configs
               mountPath: {{ .Values.prometheus.configurations.config_dir }}
+            - name: prometheus-data
+              mountPath: {{ .Values.prometheus.tsdbPath }}
       volumes:
         - name: prometheus-configs
           configMap:
             defaultMode: 420
             name: {{ include "monitoring.prometheus.cmname" . }}
+        - name: prometheus-data
+          emptyDir: {}
       {{- with .Values.prometheus.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -53,9 +53,12 @@ prometheus:
     name: ""
     annotations: {}
 
+  # tsdbPath is the path where tsdb data will be stored in the container
+  tsdbPath: "/prometheus/"
+
   runArgs:
     - "--config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.mainConfig.file_name }}"
-    - "--storage.tsdb.path=/prometheus/"
+    - "--storage.tsdb.path={{ .Values.prometheus.tsdbPath }}"
     - "--web.config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.webConfig.file_name }}"
 
   affinity: {}
