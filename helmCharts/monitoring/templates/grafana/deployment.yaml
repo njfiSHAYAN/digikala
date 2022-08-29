@@ -38,10 +38,26 @@ spec:
             memory: {{ .requests.memory }}
         {{- end }}
         env:
+          {{- range $key, $val := .Values.grafana.envVars }}
+          - name: {{ $key }}
+            value: {{ $val }}
+          {{- end }}
           {{- if .Values.grafana.createAdminUser.enabled }}
           - name: GF_SECURITY_ADMIN_USER
             value: {{ .Values.grafana.createAdminUser.user }}
           - name: GF_SECURITY_ADMIN_PASSWORD
             value: {{ .Values.grafana.createAdminUser.password }}
-          {{ end }}
+          {{- end }}
         
+      {{- with .Values.grafana.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.grafana.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.grafana.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

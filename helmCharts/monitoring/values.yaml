@@ -285,6 +285,13 @@ grafana:
 
   nodeSelector: {}
 
+  # envVars contain environement variables inside grafana container
+  # no need to specify admin username and password. use createAdminUser instead.
+  envVars: {}
+    # foo: bar
+    # x: y
+
+
 
 blackbox:
   fullnameOverride: ""
