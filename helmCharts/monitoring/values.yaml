@@ -294,3 +294,11 @@ blackbox:
   service:
     port: 9115
     name: blackbox
+
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/blackbox/"
+    mainConfig:
+      file_name: blackbox.yaml
+      data: |-
+        {{ include "monitoring.blackbox.mainConfig" . }}
