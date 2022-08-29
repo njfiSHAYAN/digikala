@@ -7,9 +7,6 @@ metadata:
     {{- include "monitoring.labels" . | nindent 4 }}
   namespace: {{ .Values.namespace }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "monitoring.prometheus.selectorLabels" . | nindent 6 }}
@@ -28,11 +25,11 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "monitoring.prometheus.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Values.prometheus.containerName }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml .Values.prometheus.securityContext | nindent 12 }}
           image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
           args:
@@ -41,12 +38,12 @@ spec:
           {{- end}}
           ports:
             - name: http
-              containerPort: 9090
+              containerPort: {{ .Values.prometheus.image.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /-/healthy
-              port: 9090
+              port: {{ .Values.prometheus.image.port }}
               {{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
               httpHeaders:
                 - name: Authorization
@@ -55,14 +52,21 @@ spec:
           readinessProbe:
             httpGet:
               path: /-/ready
-              port: 9090
+              port: {{ .Values.prometheus.image.port }}
               {{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
               httpHeaders:
                 - name: Authorization
                   value: {{ .Values.prometheus.configurations.webConfig.authentication.authHeader }}
               {{- end }}
+          {{- with .Values.prometheus.resources }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            limits:
+              cpu: {{ .limits.cpu }}
+              memory: {{ .limits.memory }}
+            requests:
+              cpu: {{ .requests.cpu }}
+              memory: {{ .requests.memory }}
+          {{- end }}
           volumeMounts:
             - name: prometheus-configs
               mountPath: {{ .Values.prometheus.configurations.config_dir }}
@@ -71,15 +75,15 @@ spec:
           configMap:
             defaultMode: 420
             name: {{ include "monitoring.prometheus.cmname" . }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.prometheus.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.prometheus.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.prometheus.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

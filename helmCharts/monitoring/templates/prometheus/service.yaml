@@ -6,10 +6,10 @@ metadata:
     {{- include "monitoring.labels" . | nindent 4 }}
   namespace: {{ .Values.namespace }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.prometheus.service.type }}
   ports:
     - port: {{ .Values.prometheus.service.port }}
-      targetPort: 9090
+      targetPort: {{ .Values.prometheus.image.port }}
       protocol: TCP
   selector:
     {{- include "monitoring.prometheus.selectorLabels" . | nindent 4 }}

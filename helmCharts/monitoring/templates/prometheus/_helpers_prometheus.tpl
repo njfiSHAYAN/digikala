@@ -25,7 +25,7 @@ app.kubernetes.io/monitoringTask: prometheus
 Create the name of the service account to use
 */}}
 {{- define "monitoring.prometheus.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
+{{- if .Values.prometheus.serviceAccount.create }}
 {{- default (include "monitoring.prometheus.fullname" .) .Values.prometheus.serviceAccount.name }}
 {{- else }}
 ""
@@ -127,10 +127,6 @@ scrape_configs:
     - source_labels: [__meta_kubernetes_pod_name]
       action: replace
       target_label: kubernetes_pod_name
-  
-  - job_name: 'kube-state-metrics'
-    static_configs:
-      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
 
   - job_name: 'kubernetes-cadvisor'
 
@@ -184,6 +180,25 @@ scrape_configs:
       action: replace
       target_label: kubernetes_name
 
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      target: ['google.com']
+      module: ["http_2xx"]
+
+    kubernetes_sd_configs:
+    - role: endpoints
+
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: '.*blackbox.*'
+      - source_labels: [__param_target]
+        action: replace
+        target_label: instance
+        regex: (.*)
+        replacement: $1
+
 {{- end }}
 
 
@@ -201,7 +216,7 @@ groups:
       severity: page
     # Prometheus templates apply here in the annotation and label fields of the alert.
     annotations:
-      description: '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 5 minutes.'
+      description: '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 2 minutes.'
       summary: 'Instance {{ `{{ $labels.instance }}` }} down'
 
 {{- end }}
