@@ -19,15 +19,23 @@ spec:
       labels:
       {{- include "monitoring.alertManager.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.alertManager.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.alertManager.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ .Values.alertManager.containerName }}
+        securityContext:
+          {{- toYaml .Values.alertManager.securityContext | nindent 10 }}
         image: {{ .Values.alertManager.image.repository }}:{{ .Values.alertManager.image.tag }}
         args:
         {{- range .Values.alertManager.runArgs }}
           - {{ tpl . $ }}
         {{- end}}
         ports:
-        - containerPort: 9093
+        - containerPort: {{ .Values.alertManager.image.port }}
         {{- with .Values.alertManager.resources }}
         resources:
           limits:
@@ -45,3 +53,15 @@ spec:
           configMap:
             defaultMode: 420
             name: {{ include "monitoring.alertManager.cmname" . }}
+      {{- with .Values.alertManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.alertManager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.alertManager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

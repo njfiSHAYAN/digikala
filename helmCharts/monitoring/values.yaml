@@ -204,10 +204,13 @@ alertManager:
   imagePullSecrets: []
   containerName: alert-manager
 
+  podSecurityContext: {}
+
   image:
     repository: docker.io/prom/alertmanager
     pullPolicy: IfNotPresent
     tag: "v0.24.0"
+    port: 9093
 
   resources:
     limits:
@@ -243,6 +246,13 @@ alertManager:
     authUsername: "digiprojectalertmanager@gmail.com"
     authIdentity: "digiprojectalertmanager@gmail.com"
     authPassword: "tmdomrsefzgqrbpv"
+
+  affinity: {}
+
+  tolerations: []
+
+  nodeSelector: {}
+  securityContext: {}
 
 
 
