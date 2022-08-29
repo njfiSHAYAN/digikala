@@ -226,11 +226,23 @@ alertManager:
 
   configurations:
     configMapName: ""
+    resolve_timeout: 5m
+    group_wait: 10s
+    group_interval: 10s
+    repeat_interval: 30s
     config_dir: "/etc/alertManager/"
     mainConfig:
       file_name: alertManager.yaml
       data: |-
         {{ include "monitoring.alertManager.mainConfig" . }}
+
+  emailInfo:
+    to: "sobhan.saf79@gmail.com"
+    from: "digiprojectalertmanager@gmail.com"
+    smtpServer: "smtp.gmail.com:587"
+    authUsername: "digiprojectalertmanager@gmail.com"
+    authIdentity: "digiprojectalertmanager@gmail.com"
+    authPassword: "tmdomrsefzgqrbpv"
 
 
 

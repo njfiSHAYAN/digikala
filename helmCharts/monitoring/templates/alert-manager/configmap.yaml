@@ -5,5 +5,24 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   {{ .Values.alertManager.configurations.mainConfig.file_name }}: |-
-    {{- tpl .Values.alertManager.configurations.mainConfig.data . | nindent 4 }}
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 30m
+      receiver: 'email'
+    receivers:
+    - name: 'email'
+      email_configs:
+      {{- with .Values.alertManager.emailInfo }}
+      - to: {{ .to }}
+        from: {{ .from }}
+        smarthost: {{ .smtpServer }}
+        auth_username: {{ .authUsername }}
+        auth_identity: {{ .authIdentity }}
+        auth_password: {{ .authPassword }}
+      {{- end }}
   
