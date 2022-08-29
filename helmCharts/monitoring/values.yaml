@@ -226,6 +226,7 @@ alertManager:
 
   runArgs:
     - "--config.file={{ .Values.alertManager.configurations.config_dir }}{{ .Values.alertManager.configurations.mainConfig.file_name }}"
+    - "--web.config.file={{ .Values.alertManager.configurations.config_dir }}{{ .Values.alertManager.configurations.webConfig.file_name }}"
 
   configurations:
     configMapName: ""
@@ -236,8 +237,12 @@ alertManager:
     config_dir: "/etc/alertManager/"
     mainConfig:
       file_name: alertManager.yaml
-      data: |-
-        {{ include "monitoring.alertManager.mainConfig" . }}
+    webConfig:
+      file_name: web.yaml
+      authentication:
+        enabled: true
+        username: admin
+        password: password
 
   emailInfo:
     to: "sobhan.saf79@gmail.com"

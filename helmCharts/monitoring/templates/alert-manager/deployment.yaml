@@ -46,6 +46,17 @@ spec:
             cpu: {{ .requests.cpu }}
             memory: {{ .requests.memory }}
         {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: {{ .Values.alertManager.image.port }}
+            {{- include "monitoring.alertManager.authHeaders" . | nindent 12 }}
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: {{ .Values.alertManager.image.port }}
+            {{- include "monitoring.alertManager.authHeaders" . | nindent 12 }}
+
         volumeMounts:
           - name: configs
             mountPath: {{ .Values.alertManager.configurations.config_dir }}

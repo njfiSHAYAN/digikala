@@ -26,3 +26,10 @@ data:
         auth_password: {{ .authPassword }}
       {{- end }}
   
+  {{ .Values.alertManager.configurations.webConfig.file_name }}: |-
+    {{- with .Values.alertManager.configurations.webConfig.authentication }}
+    {{- if .enabled }}
+    basic_auth_users:
+      {{ htpasswd .username .password | replace ":" ": "}}
+    {{- end }}
+    {{ end }}

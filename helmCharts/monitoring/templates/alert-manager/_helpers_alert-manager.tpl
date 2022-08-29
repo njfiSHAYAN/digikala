@@ -29,3 +29,18 @@ configmap name for alertManager configs
 {{ default (printf "%s-conf" (include "monitoring.alertManager.fullname" .)) .Values.alertManager.configurations.configMapName }}
 {{- end }}
 
+
+{{/*
+liveness and readiness authorization headers.
+if basic authentication is enabled authorization header will be set for liveness and
+readiness checks
+*/}}
+{{- define "monitoring.alertManager.authHeaders" }}
+{{- with .Values.alertManager.configurations.webConfig.authentication }}
+{{- if .enabled }}
+httpHeaders:
+  - name: Authorization
+    value: Basic {{ printf "%s:%s" .username .password | b64enc }}
+{{- end }}
+{{- end }}
+{{- end }}
