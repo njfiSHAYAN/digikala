@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "monitoring.grafana.selectorLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+  name: {{ include "monitoring.grafana.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "monitoring.grafana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+          {{- with .Values.grafana.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "monitoring.grafana.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Values.grafana.containerName }}
+        image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
+        args:
+        {{- range .Values.grafana.runArgs }}
+          - {{ tpl . $ }}
+        {{- end}}
+        ports:
+        - containerPort: {{ .Values.grafana.image.port }}
+        {{- with .Values.grafana.resources }}
+        resources:
+          limits:
+            cpu: {{ .limits.cpu }}
+            memory: {{ .limits.memory }}
+          requests:
+            cpu: {{ .requests.cpu }}
+            memory: {{ .requests.memory }}
+        {{- end }}
+        env:
+          {{- if .Values.grafana.createAdminUser.enabled }}
+          - name: GF_SECURITY_ADMIN_USER
+            value: {{ .Values.grafana.createAdminUser.user }}
+          - name: GF_SECURITY_ADMIN_PASSWORD
+            value: {{ .Values.grafana.createAdminUser.password }}
+          {{ end }}
+        
