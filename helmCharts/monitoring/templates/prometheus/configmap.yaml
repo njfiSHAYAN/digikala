@@ -30,7 +30,7 @@ data:
   {{ .Values.prometheus.configurations.mainConfig.file_name }}: |-
     global:
       scrape_interval: {{ .Values.prometheus.configurations.mainConfig.scrape_interval }}
-      evaluation_interval: 5s
+      evaluation_interval: {{ .Values.prometheus.configurations.mainConfig.evaluation_interval }}
     rule_files:
       - {{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.rules.file_name }}
     alerting:
@@ -176,7 +176,7 @@ data:
         relabel_configs:
           - source_labels: [__meta_kubernetes_service_name]
             action: keep
-            regex: '.*blackbox.*'
+            regex: {{ .Values.blackbox.service.name }}
           - source_labels: [__param_target]
             action: replace
             target_label: instance

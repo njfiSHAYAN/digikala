@@ -134,6 +134,7 @@ prometheus:
     mainConfig:
       file_name: "prometheus.yaml" 
       scrape_interval: 5s
+      evaluation_interval: 5s 
     rules:
       file_name: "rules.yaml" 
     # TODO: DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
