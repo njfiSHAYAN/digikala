@@ -22,6 +22,7 @@ spec:
       containers:
       - name: {{ .Values.grafana.containerName }}
         image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
+        imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
         args:
         {{- range .Values.grafana.runArgs }}
           - {{ tpl . $ }}

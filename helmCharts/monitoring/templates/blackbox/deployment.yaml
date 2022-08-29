@@ -30,6 +30,7 @@ spec:
           {{- toYaml .Values.blackbox.securityContext | nindent 10 }}
         name: {{ .Values.blackbox.containerName }}
         image: {{ .Values.blackbox.image.repository }}:{{ .Values.blackbox.image.tag }}
+        imagePullPolicy: {{ .Values.blackbox.image.pullPolicy }}
         args:
         {{- range .Values.blackbox.runArgs }}
           - {{ tpl . $ }}

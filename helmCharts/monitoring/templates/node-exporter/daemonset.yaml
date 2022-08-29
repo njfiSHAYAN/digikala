@@ -34,6 +34,7 @@ spec:
         {{- end}}
         name: {{ .Values.nodeExporter.containerName }}
         image: {{ .Values.nodeExporter.image.repository }}:{{ .Values.nodeExporter.image.tag }}
+        imagePullPolicy: {{ .Values.nodeExporter.image.pullPolicy }}
         ports:
           - containerPort: 9100
             protocol: TCP

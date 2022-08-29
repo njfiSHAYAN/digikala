@@ -30,6 +30,7 @@ spec:
         securityContext:
           {{- toYaml .Values.alertManager.securityContext | nindent 10 }}
         image: {{ .Values.alertManager.image.repository }}:{{ .Values.alertManager.image.tag }}
+        imagePullPolicy: {{ .Values.alertManager.image.pullPolicy }}
         args:
         {{- range .Values.alertManager.runArgs }}
           - {{ tpl . $ }}
