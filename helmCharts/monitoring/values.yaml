@@ -56,6 +56,12 @@ ingress:
           pathType: Prefix
           serviceName: "{{ .Values.alertManager.service.name }}"
           servicePort: "{{ .Values.alertManager.service.port }}"
+    - host: grafana.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: "{{ .Values.grafana.service.name }}"
+          servicePort: "{{ .Values.grafana.service.port }}"
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -268,7 +274,37 @@ alertManager:
 
 
 grafana:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
 
+  image:
+    repository: docker.io/grafana/grafana
+    pullPolicy: IfNotPresent
+    tag: "9.1.1"
+    port: 3000
+
+  containerName: grafana
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  createAdminUser:
+    enabled: true
+    user: "admin"
+    password: "password"
+
+  runArgs:
+
+  service:
+    port: 3000
+    name: grafana
 
 
 blackbox:
@@ -302,3 +338,6 @@ blackbox:
       file_name: blackbox.yaml
       data: |-
         {{ include "monitoring.blackbox.mainConfig" . }}
+
+  runArgs:
+    - "--config.file={{ .Values.blackbox.configurations.config_dir }}{{ .Values.blackbox.configurations.mainConfig.file_name }}"
