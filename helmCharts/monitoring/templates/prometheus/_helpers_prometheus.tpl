@@ -226,9 +226,11 @@ groups:
 prometheus web config
 */}}
 {{- define "monitoring.prometheus.webConfig" -}}
-{{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
+{{- with .Values.prometheus.configurations.webConfig.authentication }}
+{{- if .enabled }}
 basic_auth_users:
-    admin: $2b$12$5kZyqLyJOTWX9FxJdsAWw.tLzRlPPemchLEZLdtn0YRiAO1bdEMJa  # password is 123
+  {{ htpasswd .username .password | replace ":" ": "}}
+{{- end }}
 {{ end }}
 {{- end }}
 
@@ -238,4 +240,19 @@ configmap name for prometheus configs
 */}}
 {{- define "monitoring.prometheus.cmname" -}}
 {{ default (printf "%s-conf" (include "monitoring.prometheus.fullname" .)) .Values.prometheus.configurations.configMapName }}
+{{- end }}
+
+{{/*
+liveness and readiness authorization headers.
+if basic authentication is enabled authorization header will be set for liveness and
+readiness checks
+*/}}
+{{- define "monitoring.prometheus.authHeaders" }}
+{{- with .Values.prometheus.configurations.webConfig.authentication }}
+{{- if .enabled }}
+httpHeaders:
+  - name: Authorization
+    value: Basic {{ printf "%s:%s" .username .password | b64enc }}
+{{- end }}
+{{- end }}
 {{- end }}

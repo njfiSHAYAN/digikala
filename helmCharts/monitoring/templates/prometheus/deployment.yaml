@@ -44,20 +44,12 @@ spec:
             httpGet:
               path: /-/healthy
               port: {{ .Values.prometheus.image.port }}
-              {{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
-              httpHeaders:
-                - name: Authorization
-                  value: {{ .Values.prometheus.configurations.webConfig.authentication.authHeader }}
-              {{- end }}
+              {{- include "monitoring.prometheus.authHeaders" . | nindent 14 }}
           readinessProbe:
             httpGet:
               path: /-/ready
               port: {{ .Values.prometheus.image.port }}
-              {{- if .Values.prometheus.configurations.webConfig.authentication.enabled }}
-              httpHeaders:
-                - name: Authorization
-                  value: {{ .Values.prometheus.configurations.webConfig.authentication.authHeader }}
-              {{- end }}
+              {{- include "monitoring.prometheus.authHeaders" . | nindent 14 }}
           {{- with .Values.prometheus.resources }}
           resources:
             limits:

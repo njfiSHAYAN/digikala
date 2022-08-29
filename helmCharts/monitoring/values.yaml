@@ -139,8 +139,8 @@ prometheus:
         {{ include "monitoring.prometheus.webConfig" . }}
       authentication:
         enabled: true
-        authHeader: "Basic YWRtaW46MTIz"
-
+        username: admin
+        password: password
 
 
 nodeExporter:
