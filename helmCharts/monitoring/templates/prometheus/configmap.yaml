@@ -4,7 +4,7 @@ metadata:
   name: {{ include "monitoring.prometheus.cmname" . }}
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.prometheus.configurations.rules.file_name }}: |-
     groups:

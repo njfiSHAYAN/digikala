@@ -4,7 +4,7 @@ metadata:
   name: {{ include "monitoring.prometheus.clusterRoleNmae" . }}-binding
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
