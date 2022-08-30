@@ -1,26 +1,38 @@
 pipeline {
     agent any
-
-    stages {
-        stage('check workspace') {
-            steps {
-                sh 'ls -l'
-            }
-        }
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
-            }
-        }
+    environment {
+        registry = "shayannjf/digiApp"
+        registryCredential = 'dockerhub_credential'
+        repositoryCredential = 'digikala_repository_token'
+        repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
+        dockerImage = ''
     }
+    // connect to git
+    stages {
+        stage('Cloning Git') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/jenkins']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: repositoryCredential, url: repositoryUrl]]])       
+            }
+        }
+    
+    // Building Docker images
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry
+        }
+      }
+    }
+    
+     // Uploading Docker images into Docker Hub
+    stage('Upload Image') {
+     steps{    
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+            }
+        }
+      }
+    }
+  }
 }
