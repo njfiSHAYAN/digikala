@@ -30,8 +30,6 @@ ingress:
   #      - chart-example.local
 
 
-# namespace is the namespace on which kubernetes resources will be deployed on
-namespace: "monitoring"
 
 # prometheus is used to deploy prometheus configurations
 prometheus:

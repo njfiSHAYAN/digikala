@@ -4,7 +4,7 @@ metadata:
   name: {{ include "monitoring.prometheus.clusterRoleNmae" . }}
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
-    namespace: {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
 rules:
   {{- range .Values.prometheus.clusterRole.apiGroupsList }}
   - apiGroups: 
