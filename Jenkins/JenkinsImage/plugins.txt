@@ -6,6 +6,7 @@ cloudbees-folder:latest
 configuration-as-code:latest
 credentials-binding:latest
 email-ext:latest
+Folders:latest
 git:latest
 github-branch-source:latest
 gradle:latest
