@@ -6,8 +6,9 @@ cloudbees-folder:latest
 configuration-as-code:latest
 credentials:latest
 credentials-binding:latest
+docker-pipeline:latest
 email-ext:latest
-Folders:latest
+folders:latest
 git:latest
 github-branch-source:latest
 gradle:latest
