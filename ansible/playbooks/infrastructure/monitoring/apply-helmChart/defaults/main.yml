@@ -1,0 +1,22 @@
+# chart file info to copy to destination and get installed by helm
+# do note that chart_src is the directory which chart resides in. not the path of the chart itself.
+chart_name: "monitoring"
+chart_src: "../../../../../../helmCharts"
+chart_dest: "/tmp/charts/"
+chart_owner: "{{ ansible_user_id }}"
+chart_group: "{{ ansible_user_id }}"
+chart_mode: 0644
+
+# values file info to copy to destination and is used in chart installation.
+# ignores values file if values_enabled is false
+values_enabled: false
+values_src: "values.yaml"
+values_dest: "/tmp/charts/"
+values_owner: "{{ ansible_user_id }}"
+values_group: "{{ ansible_user_id }}"
+values_mode: 0644
+
+
+# release info to install
+release_name: "mon"
+release_namespace: "monitoring"

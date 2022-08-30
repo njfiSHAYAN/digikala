@@ -1,0 +1,18 @@
+---
+- name: copy chart to host
+  copy:
+    src: "{{ chart_src }}/{{ chart_name }}"
+    dest: "{{ chart_dest }}"
+    owner: "{{ chart_owner }}"
+    group: "{{ chart_group }}"
+    mode: " {{ chart_mode }}"
+
+- name: copy values file
+  copy:
+    src: "{{ values_src }}"
+    dest: "{{ values_dest }}"
+    owner: "{{ values_owner }}"
+    group: "{{ values_group }}"
+    mode: " {{ values_mode }}"
+  when: "values_enabled is true"
+
