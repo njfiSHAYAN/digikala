@@ -19,8 +19,16 @@ spec:
       labels:
         {{- include "monitoring.grafana.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.grafana.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.grafana.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ .Values.grafana.containerName }}
+        securityContext:
+          {{- toYaml .Values.grafana.securityContext | nindent 10 }}
         image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
         imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
         args:

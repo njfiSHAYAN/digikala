@@ -266,6 +266,10 @@ grafana:
   nameOverride: ""
   podAnnotations: {}
   imagePullSecrets: []
+  podSecurityContext: {}
+
+  securityContext: {}
+
 
   image:
     repository: docker.io/grafana/grafana
