@@ -57,6 +57,17 @@ spec:
           - name: GF_SECURITY_ADMIN_PASSWORD
             value: {{ .Values.grafana.createAdminUser.password }}
           {{- end }}
+        volumeMounts:
+          - name: datasources
+            mountPath: {{ .Values.grafana.configurations.config_dir }}/provisioning
+
+      volumes:
+        - name: datasources
+          configMap:
+            name: {{ include "monitoring.grafana.cmname" . }}
+            items:
+              - key: {{ .Values.grafana.configurations.datasources.file_name }}
+                path: datasources/ds.yaml
         
       {{- with .Values.grafana.nodeSelector }}
       nodeSelector:

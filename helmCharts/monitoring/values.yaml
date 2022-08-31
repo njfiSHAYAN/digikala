@@ -315,7 +315,18 @@ grafana:
     # foo: bar
     # x: y
 
-
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/grafana/"
+    
+    # in our case grafana only uses one prometeheus as resource
+    # url will be set to prometheus service. also basic auth will be handled 
+    datasources:
+      file_name: "ds.yaml"
+      name: prometheus
+      type: prometheus
+      access: proxy
+      
 
 blackbox:
   fullnameOverride: ""
