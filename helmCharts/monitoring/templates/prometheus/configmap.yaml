@@ -187,7 +187,7 @@ data:
       - job_name: 'blackbox'
         metrics_path: /probe
         params:
-          target: [{{ .Values.prometheus.blackboxTarget }}/hello]
+          target: [{{ default .Values.prometheus.app.serviceName .Values.prometheus.blackboxTarget }}]
           module: ["http_2xx"]
 
         kubernetes_sd_configs:
@@ -203,3 +203,9 @@ data:
             regex: (.*)
             replacement: $1
 
+
+      {{- if .Values.prometheus.app.enabled }}
+      - job_name: 'Application'
+        static_configs:
+          - targets: [{{ .Values.prometheus.app.serviceName }}]
+      {{- end }}

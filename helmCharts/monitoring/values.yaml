@@ -116,10 +116,17 @@ prometheus:
     requests:
       cpu: 250m
       memory: 512Mi
+
+  # application info to scrape
+  app:
+    enabled: true
+    # the name of the service which is connected to app. used to scrapt app metrics
+    serviceName: "digiApp"
   
   # target parameter for blackbox.
+  # will be set to prometheus.app.serviceName if not specified EVEN IF prometheus.app.enabled is false
   # TODO: it should be set to application address
-  blackboxTarget: "google.com"
+  blackboxTarget: ""
   
   # configurations contains different prometheus config data, such as main config, web config and rules
   # configurations exist in _helpers_prometheus.tpl file.
