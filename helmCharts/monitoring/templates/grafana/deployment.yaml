@@ -58,16 +58,30 @@ spec:
             value: {{ .Values.grafana.createAdminUser.password }}
           {{- end }}
         volumeMounts:
-          - name: datasources
+          - name: config
             mountPath: {{ .Values.grafana.configurations.config_dir }}/provisioning
+          - name: dashboards-json
+            mountPath: {{ .Values.grafana.configurations.config_dir }}/jsonDashboards
 
       volumes:
-        - name: datasources
+        - name: config
           configMap:
             name: {{ include "monitoring.grafana.cmname" . }}
             items:
               - key: {{ .Values.grafana.configurations.datasources.file_name }}
                 path: datasources/ds.yaml
+              - key : dashboard.yaml
+                path: dashboards/dashboard.yaml
+        - name: dashboards-json
+          configMap:
+            name: {{ include "monitoring.grafana.cmname" . }}
+            items:
+            {{- $currentScope := .}}
+            {{- range $path, $_ :=  .Files.Glob  "dashboards/*" }}
+              {{- $a := $path | split "/" }}
+              - key: {{ $a._1}}
+                path: {{ $a._1}}
+            {{- end }}
         
       {{- with .Values.grafana.nodeSelector }}
       nodeSelector:

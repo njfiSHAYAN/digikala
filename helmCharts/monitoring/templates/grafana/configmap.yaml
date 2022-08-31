@@ -10,6 +10,7 @@ data:
     - name: {{ .Values.grafana.configurations.datasources.name }}
       type: {{ .Values.grafana.configurations.datasources.type }}
       access: {{ .Values.grafana.configurations.datasources.access }}
+      uid: P1809F7CD0C75ACF3
 
       {{- $url := .Values.prometheus.service.name -}}
       {{- $port := .Values.prometheus.service.port -}}
@@ -22,3 +23,14 @@ data:
       url: http://{{ $url }}:{{ $port }}
       {{- end }}
       {{- end }}
+
+  dashboard.yaml: |-
+    apiVersion: 1
+    providers:
+      - name: Default
+        folder: Services
+        type: file
+        options:
+          path: {{ .Values.grafana.configurations.config_dir }}/jsonDashboards
+
+  {{- (.Files.Glob "dashboards/*").AsConfig | nindent 2 }}
