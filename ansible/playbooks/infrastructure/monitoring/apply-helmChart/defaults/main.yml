@@ -20,3 +20,5 @@ values_mode: 0644
 # release info to install
 release_name: "mon"
 release_namespace: "monitoring"
+
+kubeconfig: "~/admin.conf"

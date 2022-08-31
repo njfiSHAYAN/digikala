@@ -21,9 +21,9 @@
 
 - name: install charts
   kubernetes.core.helm:
+    kubeconfig: "{{ kubeconfig }}"
     name: "{{ release_name }}"
     chart_ref: "{{ chart_dest }}/{{ chart_name }}"
     release_namespace: "{{ release_namespace }}"
     create_namespace: yes
     atomic: yes
-  tags: test
