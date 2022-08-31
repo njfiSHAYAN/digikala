@@ -235,12 +235,12 @@ alertManager:
 
   configurations:
     configMapName: ""
-    resolve_timeout: 5m
-    group_wait: 10s
-    group_interval: 10s
-    repeat_interval: 30s
     config_dir: "/etc/alertManager/"
     mainConfig:
+      resolve_timeout: 5m
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 30s
       file_name: alertManager.yaml
     webConfig:
       file_name: web.yaml
@@ -346,8 +346,6 @@ blackbox:
     config_dir: "/etc/blackbox/"
     mainConfig:
       file_name: blackbox.yaml
-      data: |-
-        {{ include "monitoring.blackbox.mainConfig" . }}
   
   securityContext: {}
   imagePullSecrets: []

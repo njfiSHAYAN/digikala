@@ -6,13 +6,13 @@ metadata:
 data:
   {{ .Values.alertManager.configurations.mainConfig.file_name }}: |-
     global:
-      resolve_timeout: 5m
+      resolve_timeout: {{ .Values.alertManager.configurations.mainConfig.resolve_timeout }}
 
     route:
       group_by: ['alertname']
-      group_wait: 10s
-      group_interval: 10s
-      repeat_interval: 30m
+      group_wait: {{ .Values.alertManager.configurations.mainConfig.group_wait }}
+      group_interval: {{ .Values.alertManager.configurations.mainConfig.group_interval }}
+      repeat_interval: {{ .Values.alertManager.configurations.mainConfig.repeat_interval }}
       receiver: 'email'
     receivers:
     - name: 'email'
