@@ -56,8 +56,8 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
-          {{- range .Values.volumeMounts }}
           volumeMounts:
+          {{- range .Values.volumeMounts }}         
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
           {{- end }}
@@ -67,8 +67,8 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- range .Values.volumes }}
       volumes:
+      {{- range .Values.volumes }}
         - name: {{ .name }}
           {{- with .hostPath }}
           hostPath:

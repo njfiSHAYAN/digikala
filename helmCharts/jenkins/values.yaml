@@ -84,12 +84,24 @@ affinity: {}
 volumeMounts:
   - name: jenkins-vol
     mountPath: /var/jenkins_home
+  - name: docker-socket
+    mountPath: /var/run/docker.sock
+  - name: docker-directory
+    mountPath: /usr/bin/docker
 
 volumes:
   - name: jenkins-vol
     hostPath:
       path: /var/jenkins_vol
       type: Directory
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+  - name: docker-directory
+    hostPath:
+      path: /usr/bin/docker
+      type: File
 
 username: admin
 password: password

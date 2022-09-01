@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { docker { image 'docker:dind' } }
     environment {
         registry = "shayannjf/digiApp"
         registryCredential = 'dockerhub_credential'
@@ -18,8 +18,8 @@ pipeline {
     // Building Docker images
     stage('Building image') {
       steps{
-        script {
-          dockerImage = docker.build registry
+         script {
+           dockerImage = docker.build registry
         }
       }
     }
