@@ -1,11 +1,12 @@
 - name: create cluster
-  import_playbook: "install-kubeadm/playbook.yaml"
+  import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
+  when: "hostvars['master2']['api_status']['failed'] is true"
 
 - name: install monitoring
   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
   vars:
     chart_name: monitoring
-    chart_src: "../helmCharts"
+    chart_src: "../../../../helmCharts"
     chart_dest: "/tmp/charts"
     chart_owner: "{{ ansible_user_id }}"
     chart_group: "{{ ansible_user_id }}"
@@ -18,7 +19,7 @@
     values_group: "{{ ansible_user_id }}"
     values_mode: 0644
 
-    release_name: "test"
+    release_name: "monitoring"
     release_namespace: "default"
 
     kubeconfig: ~/admin.conf
