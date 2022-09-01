@@ -1,2 +1,11 @@
+- name: check kube cluster is up
+  hosts: master2
+  tasks:
+    - name: Get Cluster information
+      kubernetes.core.k8s_cluster_info:
+        kubeconfig: ~/admin.conf
+      register: api_status
+
 - name: create cluster
-  import_playbook: "install-kubeadm/playbook.yaml"
+  import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
+  when: "hostvars['master2']['api_status']['failed'] is true"
