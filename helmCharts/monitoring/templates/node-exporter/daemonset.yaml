@@ -73,3 +73,8 @@ spec:
         name: root
       {{- end }}
       {{- end }}
+
+      {{- with .Values.nodeExporter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

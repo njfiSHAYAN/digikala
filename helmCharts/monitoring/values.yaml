@@ -202,6 +202,10 @@ nodeExporter:
       prometheus.io/scrape: 'true'
       prometheus.io/port:   '9100'
 
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      effect: NoSchedule
+
 alertManager:
   fullnameOverride: ""
   nameOverride: ""
