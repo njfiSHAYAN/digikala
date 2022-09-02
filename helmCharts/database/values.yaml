@@ -129,8 +129,7 @@ resources:
 
 
 persistence:
-
-  enabled: true
+  enabled: false
   existingClaim: ""
 
   subPath: ""
@@ -151,7 +150,8 @@ persistence:
   size: 1Gi
 
 metrics:
-  enabled: false
+
+  enabled: true
   ## MySQL Prometheus exporter image
   ## ref: https://hub.docker.com/r/prom/mysqld-exporter
   ## @param metrics.image.registry MariaDB Prometheus exporter image registry
