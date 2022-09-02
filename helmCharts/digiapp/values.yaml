@@ -1,0 +1,95 @@
+replicaCount: 1
+
+image:
+  repository: sobhansaf79/digiapp
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  environments: {}
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: digiapp.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# secretConfig defines config.json file
+# config.json file containes information about db, redis and some configs used in app
+secretConfig:
+  enabled: true
+  data: 
+    "ewogICAgImRiIjogewogICAgICAgICJlbmdpbmUiOiAic3FsaXRlIiwKICAgICAgICAic3FsX2FsY2hlbXlfdXJsIjogInNxbGl0ZTovLy8uL3NxbF9hcHAuZGIiLAogICAgICAgICJjcmVhdGVfZW5naW5lX2FyZ3MiOiB7CiAgICAgICAgICAgICJjb25uZWN0X2FyZ3MiOiB7CiAgICAgICAgICAgICAgICAiY2hlY2tfc2FtZV90aHJlYWQiOiBmYWxzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfSwKICAgICJwYXNzd29yZF9zYWx0X2xlbmd0aCI6IDQsCiAgICAidXNlcnMiOiB7CiAgICAgICAgImp3dF9zZWNyZXQiOiAiU1RST05HX1NFQ1JFVCIsCiAgICAgICAgInRva2VuX2R1cmF0aW9uX3NlY29uZHMiOiA4NjQwMAogICAgfSwKICAgICJyZWRpcyI6IHsKICAgICAgICAiaG9zdCI6ICJ0aGVyZWRpcy1tYXN0ZXIiLAogICAgICAgICJwb3J0IjogIjYzNzkiLAogICAgICAgICJkYiI6IDAsCiAgICAgICAgInBhc3N3b3JkIjogInJlZGlzIgogICAgfQp9"
+  
+  secret_name: app-secret
+  secret_type: Opaque
+
+  # volume_name is the name of the volume which is mounted to the pod as config secret
+  volume_name: vol
+
+  # configFilePath is the path to app config dir relative to workdir in container
+  # config file will be read from this directory
+  configFilePath: application/config/
+
+  # config_file_name is the name of the file inside configFilePath where config data is stored
+  config_file_name: config.json
+
+
+redis:
+  fullnameOverride: theredis
+  auth:
+    password: redis

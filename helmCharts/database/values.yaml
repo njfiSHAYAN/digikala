@@ -102,7 +102,6 @@ readinessProbe:
   successThreshold: 1
   failureThreshold: 3
 
-
 service:
   
   type: ClusterIP
@@ -130,6 +129,7 @@ resources:
 
 
 persistence:
+
   enabled: true
   existingClaim: ""
 
@@ -151,7 +151,6 @@ persistence:
   size: 1Gi
 
 metrics:
-
   enabled: false
   ## MySQL Prometheus exporter image
   ## ref: https://hub.docker.com/r/prom/mysqld-exporter
@@ -163,16 +162,15 @@ metrics:
   ## @param metrics.image.pullSecrets MariaDB Prometheus exporter image pull secrets
   ##
   image:
+
     repository: prom/mysqld-exporter
     tag: latest
     pullPolicy: IfNotPresent
-
   service:
     type: ClusterIP
     port: 9104
     annotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9104"
-    
+   
     clusterIP: ""
-

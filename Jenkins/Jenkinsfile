@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('check workspace') {
+            steps {
+                sh 'ls -l'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Building..'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
+    }
+}

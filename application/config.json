@@ -1,0 +1,22 @@
+{
+    "db": {
+        "engine": "sqlite",
+        "sql_alchemy_url": "sqlite:///./sql_app.db",
+        "create_engine_args": {
+            "connect_args": {
+                "check_same_thread": false
+            }
+        }
+    },
+    "password_salt_length": 4,
+    "users": {
+        "jwt_secret": "STRONG_SECRET",
+        "token_duration_seconds": 86400
+    },
+    "redis": {
+        "host": "redis",
+        "port": "6379",
+        "db": 0,
+        "password": "redis"
+    }
+}

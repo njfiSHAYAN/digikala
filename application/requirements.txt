@@ -1,0 +1,6 @@
+fastapi==0.79.1
+SQLAlchemy==1.4.40
+uvicorn==0.18.2
+PyJWT==2.4.0
+python-multipart==0.0.5
+redis==4.3.4

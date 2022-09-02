@@ -162,6 +162,7 @@ spec:
           image: "{{ .Values.metrics.image.repository }}:{{ .Values.metrics.image.tag }}"
           imagePullPolicy: {{ .Values.metrics.image.pullPolicy | quote }}
           env:
+
             - name: MARIADB_ROOT_USER
               value: {{ .Values.rootUser.user | quote }}
             - name: MARIADB_ROOT_PASSWORD
@@ -169,6 +170,7 @@ spec:
                 secretKeyRef:
                   name: {{ template "database.secretName" . }}
                   key: mariadb-root-password     
+
           command:
             - /bin/bash
             - -ec
@@ -190,7 +192,6 @@ spec:
               port: metrics
             initialDelaySeconds: 5
             timeoutSeconds: 1
-          
         {{- end }}
       volumes:
         - name: conf
