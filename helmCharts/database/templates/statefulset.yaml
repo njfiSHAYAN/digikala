@@ -172,11 +172,10 @@ spec:
                   key: mariadb-root-password     
 
           command:
-            - /bin/bash
+            - /bin/sh
             - -ec
             - |
-              password_aux="${MARIADB_ROOT_PASSWORD:-}"
-              DATA_SOURCE_NAME="${MARIADB_ROOT_USER}:${password_aux}@(localhost:3306)/" /bin/mysqld_exporter
+              export DATA_SOURCE_NAME="${MARIADB_ROOT_USER}:${MARIADB_ROOT_PASSWORD:-}@(localhost:3306)/" && /bin/mysqld_exporter
           ports:
             - name: metrics
               containerPort: 9104
