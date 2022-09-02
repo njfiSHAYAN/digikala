@@ -12,7 +12,7 @@ config = {"jwt_secret": "STRONG_SECRET", "token_duration_seconds": 86400}
 @mock.patch("application.routers.users.logger", new=mock.Mock())
 @mock.patch("application.routers.users.config", new=config)
 class TestUsers(unittest.TestCase):
-    def test_login_1(self):
+    def test_get_user_1(self):
         # wrong login token
         ex = users.jwt.exceptions.DecodeError
         token = "wrong_token"
@@ -25,7 +25,7 @@ class TestUsers(unittest.TestCase):
         )
         users.logger.error.assert_called_once_with("wrong jwt token was given")
 
-    def test_login_2(self):
+    def test_get_user_2(self):
         # token has expired
         token = "expired_token"
         with mock.patch.object(
@@ -41,7 +41,7 @@ class TestUsers(unittest.TestCase):
             users.logger.error.call_args.args, ("expired jwt token was given",)
         )
 
-    def test_login_3(self):
+    def test_get_user_3(self):
         # happy path
         token = "good_token"
         user_id = 1
