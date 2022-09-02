@@ -40,3 +40,19 @@ class TestUsers(unittest.TestCase):
         self.assertEqual(
             users.logger.error.call_args.args, ("expired jwt token was given",)
         )
+
+    def test_login_3(self):
+        # happy path
+        token = "good_token"
+        user_id = 1
+        with mock.patch.object(
+            users.jwt,
+            "decode",
+            return_value={"user_id": user_id, "expires_at": 100000000000},
+        ) as jwt_mocked:
+            res = users.get_user(token=token)
+
+        jwt_mocked.assert_called_once_with(
+            token, config["jwt_secret"], algorithms=["HS256"]
+        )
+        self.assertEqual(res, user_id)
