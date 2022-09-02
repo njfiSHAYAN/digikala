@@ -4,3 +4,4 @@ __pycache__
 sql_app.db
 Chart.lock
 digiapp/charts/*.tgz
+digi
