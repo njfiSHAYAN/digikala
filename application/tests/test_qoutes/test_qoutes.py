@@ -33,3 +33,27 @@ class TestUsers(unittest.TestCase):
         args = redis_mocked.call_args_list
         self.assertEqual(args[0].args, ("counter",))
         self.assertEqual(args[1].args, (str(user) + ":counter",))
+
+    def test_get_counter(self):
+        user = {"user_id": 10}
+        with mock.patch.object(
+            qoutes.redis, "get", side_effects=[10, 12]
+        ) as redis_mocked:
+            res = qoutes.get_counter(user)
+
+        args = redis_mocked.call_args_list
+        self.assertEqual(args[0].args, (str(user) + ":counter",))
+        self.assertEqual(args[1].args, ("counter",))
+        self.assertTrue("all_users" in res)
+        self.assertTrue("you" in res)
+
+    def test_get_logs(self):
+        user = {"user_id": 10}
+        access = ["2020-10-12"]
+        with mock.patch.object(
+            qoutes.crud, "get_access_logs", return_value=access
+        ) as crud_mocked:
+            res = qoutes.get_logs(None, user)
+
+        self.assertEqual(res, access)
+        crud_mocked.assert_called_once_with(None, user)
