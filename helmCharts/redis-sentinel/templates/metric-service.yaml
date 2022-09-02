@@ -1,0 +1,18 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-metrics" (include "redis-sentinel.fullname" .) }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: 
+    {{- include "redis-sentinel.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  ports:
+    - name: http-metrics
+      port: {{ .Values.metrics.service.port }}
+      protocol: TCP
+      targetPort: metrics
+  selector: 
+    {{- include "redis-sentinel.selectorLabels" . | nindent 4 }}
+{{- end }}
