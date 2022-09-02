@@ -33,7 +33,7 @@ def get_user(token: str = Depends(oauth2_scheme)):
     except jwt.exceptions.DecodeError:
         logger.error("wrong jwt token was given")
         raise HTTPException(
-            status_code=401, detail="your token is either invalid or expured"
+            status_code=401, detail="your token is either invalid or expired"
         )
 
     if user["expires_at"] < int(datetime.datetime.now().strftime("%s")):
@@ -85,8 +85,3 @@ def login(
     )
     logger.info("user successfully logged in")
     return {"access_token": token, "token_type": "bearer"}
-
-
-@router.get("/users/me")
-async def read_users_me(current_user: schemas.User = Depends(get_user)):
-    return current_user
