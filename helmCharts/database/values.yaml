@@ -48,10 +48,6 @@ galera:
   bootstrap:
     bootstrapFromNode: 0
 
-
-## @param existingSecret Use existing secret for password details (`rootUser.password`, `db.password`, `galera.mariabackup.password` will be ignored and picked up from this secret)
-## The secret has to contain the keys mariadb-root-password, mariadb-galera-mariabackup-password and mariadb-password.
-##
 existingSecret: ""
 
 containerPorts:
@@ -106,30 +102,6 @@ readinessProbe:
   successThreshold: 1
   failureThreshold: 3
 
-
-
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 service:
   
   type: ClusterIP
@@ -137,10 +109,6 @@ service:
   name: mysql
 
   headless:
-    ## @param service.headless.annotations Annotations for the headless service.
-    ## Useful for setting `service.alpha.kubernetes.io/tolerate-unready-endpoints="true"` when using peer-finder.
-    ##
-    annotations: {}
     ## @param service.headless.publishNotReadyAddresses Publish not Ready MariaDB Galera pods' IPs in the headless service.
     ## Required for peer discovery during cluster bootstrap (1st chart installation), optional afterwards.
     ##
@@ -161,56 +129,28 @@ resources:
 
 
 persistence:
-  ## @param persistence.enabled Enable persistence using PVC
-  ##
+
   enabled: true
-  ## @param persistence.existingClaim Provide an existing `PersistentVolumeClaim`
-  ##
   existingClaim: ""
-  ## @param persistence.subPath Subdirectory of the volume to mount
-  ##
+
   subPath: ""
-  ## @param persistence.mountPath Path to mount the volume at
-  ##
+
   mountPath: /var/lib/mysql
-  ## @param persistence.selector Selector to match an existing Persistent Volume (this value is evaluated as a template)
-  ## selector:
-  ##   matchLabels:
-  ##     app: my-app
-  ##
+
   selector: {}
-  ## @param persistence.storageClass Persistent Volume Storage Class
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  ##
+
   storageClass: ""
-  ## @param persistence.annotations Persistent Volume Claim annotations
-  ##
+
   annotations: {}
-  ## @param persistence.labels Persistent Volume Claim Labels
-  ##
+
   labels: {}
-  ## @param persistence.accessModes Persistent Volume Access Modes
-  ##
+
   accessModes:
     - ReadWriteOnce
-  ## @param persistence.size Persistent Volume Size
-  ##
+
   size: 1Gi
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-
 metrics:
-  ## @param metrics.enabled Start a side-car prometheus exporter
-  ##
   enabled: false
   ## MySQL Prometheus exporter image
   ## ref: https://hub.docker.com/r/prom/mysqld-exporter
@@ -222,153 +162,15 @@ metrics:
   ## @param metrics.image.pullSecrets MariaDB Prometheus exporter image pull secrets
   ##
   image:
-    registry: docker.io
+
     repository: prom/mysqld-exporter
     tag: latest
-    digest: ""
     pullPolicy: IfNotPresent
-    ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
-    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-    ## Example:
-    ## pullSecrets:
-    ##   - myRegistryKeySecretName
-    ##
-    pullSecrets: []
-  ## @param metrics.extraFlags MariaDB Prometheus exporter additional command line flags
-  ## Can be used to specify command line flags
-  ## E.g.:
-  ## extraFlags:
-  ##   - --collect.binlog_size
-  ##
-  extraFlags: []
-  ## MySQL Prometheus exporter containers' resource requests and limits
-  ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
-  ## We usually recommend not to specify default resources and to leave this as a conscious
-  ## choice for the user. This also increases chances charts run on environments with little
-  ## resources, such as Minikube. If you do want to specify resources, uncomment the following
-  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  ## @param metrics.resources.limits The resources limits for the container
-  ## @param metrics.resources.requests The requested resources for the container
-  ##
-  resources:
-    ## Example:
-    ## limits:
-    ##    cpu: 0.5
-    ##    memory: 256Mi
-    limits: {}
-    ## Examples:
-    ## requests:
-    ##    cpu: 0.5
-    ##    memory: 256Mi
-    requests: {}
-  ## MySQL Prometheus exporter service parameters
-  ## @param metrics.service.type Prometheus exporter service type
-  ## @param metrics.service.port Prometheus exporter service port
-  ## @param metrics.service.annotations [object] Prometheus exporter service annotations
-  ##
   service:
     type: ClusterIP
     port: 9104
     annotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9104"
-    ## @param metrics.service.loadBalancerIP Load Balancer IP if the Prometheus metrics server type is `LoadBalancer`
-    ## ref: https://kubernetes.io/docs/user-guide/services/#type-loadbalancer
-    ##
-    loadBalancerIP: ""
-    ## @param metrics.service.clusterIP Prometheus metrics service Cluster IP
-    ## e.g.:
-    ## clusterIP: None
-    ##
+   
     clusterIP: ""
-    ## @param metrics.service.loadBalancerSourceRanges Prometheus metrics service Load Balancer sources
-    ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-    ## e.g:
-    ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
-    ##
-    loadBalancerSourceRanges: []
-    ## @param metrics.service.externalTrafficPolicy Prometheus metrics service external traffic policy
-    ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-    ##
-    externalTrafficPolicy: Cluster
-
-  ## Prometheus Operator ServiceMonitor configuration
-  ##
-  serviceMonitor:
-    ## @param metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
-    ##
-    enabled: false
-    ## @param metrics.serviceMonitor.namespace Optional namespace which Prometheus is running in
-    ##
-    namespace: ""
-    ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
-    ##
-    jobLabel: ""
-    ## @param metrics.serviceMonitor.interval How frequently to scrape metrics (use by default, falling back to Prometheus' default)
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-    ## e.g:
-    ## interval: 10s
-    ##
-    interval: ""
-    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-    ## e.g:
-    ## scrapeTimeout: 10s
-    ##
-    scrapeTimeout: ""
-    ## @param metrics.serviceMonitor.selector [object] ServiceMonitor selector labels
-    ## Default to kube-prometheus install (CoreOS recommended), but should be set according to Prometheus install
-    ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
-    ##
-    selector:
-      prometheus: kube-prometheus
-    ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
-    ## Value is evalued as a template
-    ##
-    relabelings: []
-    ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
-    ## Value is evalued as a template
-    ## e.g:
-    ##  - sourceLabels:
-    ##      - "__name__"
-    ##    targetLabel: "__name__"
-    ##    action: replace
-    ##    regex: '(.*)'
-    ##    replacement: 'example_prefix_$1'
-    ##
-    metricRelabelings: []
-    ## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
-    ##
-    honorLabels: false
-    ## @param metrics.serviceMonitor.labels ServiceMonitor extra labels
-    ##
-    labels: {}
-
-  ## Prometheus Operator PrometheusRule configuration
-  ##
-  prometheusRules:
-    ## @param metrics.prometheusRules.enabled if `true`, creates a Prometheus Operator PrometheusRule (also requires `metrics.enabled` to be `true`, and makes little sense without ServiceMonitor)
-    ##
-    enabled: false
-    ## @param metrics.prometheusRules.additionalLabels [object] Additional labels to add to the PrometheusRule so it is picked up by the operator
-    ## If using the [Helm Chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator) this is the name of the Helm release and 'app: prometheus-operator'
-    ##
-    additionalLabels:
-      app: prometheus-operator
-      release: prometheus
-    ## @param metrics.prometheusRules.rules PrometheusRule rules to configure
-    ## e.g:
-    ##  - alert: MariaDB-Down
-    ##    annotations:
-    ##      message: 'MariaDB instance {{ $labels.instance }} is down'
-    ##      summary: MariaDB instance is down
-    ##    expr: absent(up{job="mariadb-galera"} == 1)
-    ##    labels:
-    ##      severity: warning
-    ##      service: mariadb-galera
-    ##    for: 5m
-    ##
-    rules: {}

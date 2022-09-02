@@ -1,0 +1,24 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-metrics" (include "database.fullname" .) }}
+  namespace: {{ include "database.namespace" . | quote }}
+  labels: 
+    {{- include "database.labels" . | nindent 4 }}
+  {{- if or .Values.metrics.service.annotations }}
+  annotations:
+    {{ .Values.metrics.service.annotations | toYaml | nindent 4}}
+  {{- end }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  {{- if and .Values.metrics.service.clusterIP (eq .Values.metrics.service.type "ClusterIP") }}
+  clusterIP: {{ .Values.metrics.service.clusterIP }}
+  {{- end }}
+  ports:
+    - name: metrics
+      port: {{ .Values.metrics.service.port }}
+      targetPort: metrics
+  selector: 
+    {{- include "database.selectorLabels" . | nindent 4 }}
+{{- end }}

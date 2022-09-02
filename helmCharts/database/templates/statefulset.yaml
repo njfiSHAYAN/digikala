@@ -162,22 +162,21 @@ spec:
           image: "{{ .Values.metrics.image.repository }}:{{ .Values.metrics.image.tag }}"
           imagePullPolicy: {{ .Values.metrics.image.pullPolicy | quote }}
           env:
-            - name: MARIADB_METRICS_EXTRA_FLAGS
-              value: {{ default "" (join " " .Values.metrics.extraFlags) | quote }}
+
             - name: MARIADB_ROOT_USER
               value: {{ .Values.rootUser.user | quote }}
             - name: MARIADB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ template "database.secretName" . }}
-                  key: mariadb-root-password
-          
+                  key: mariadb-root-password     
+
           command:
             - /bin/bash
             - -ec
             - |
               password_aux="${MARIADB_ROOT_PASSWORD:-}"
-              DATA_SOURCE_NAME="${MARIADB_ROOT_USER}:${password_aux}@(localhost:3306)/" /bin/mysqld_exporter $MARIADB_METRICS_EXTRA_FLAGS
+              DATA_SOURCE_NAME="${MARIADB_ROOT_USER}:${password_aux}@(localhost:3306)/" /bin/mysqld_exporter
           ports:
             - name: metrics
               containerPort: 9104
@@ -193,9 +192,6 @@ spec:
               port: metrics
             initialDelaySeconds: 5
             timeoutSeconds: 1
-          {{- if .Values.metrics.resources }}
-          resources: {{- toYaml .Values.metrics.resources | nindent 12 }}
-          {{- end }}
         {{- end }}
       volumes:
         - name: conf
