@@ -1,0 +1,253 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ printf "%s-node" (include "redis-sentinel.fullname" .) }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: 
+    {{- include "redis-sentinel.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "redis-sentinel.labels" . | nindent 6 }}
+  serviceName: {{ printf "%s-headless" (include "redis-sentinel.fullname" .) }}
+  {{- if .Values.updateStrategy }}
+  updateStrategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels: {{- include "redis-sentinel.labels" . | nindent 8 }}
+      {{- if and .Values.metrics.enabled .Values.metrics.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.metrics.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: config-redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.pullPolicy | quote }}
+          env:
+            - name: REDIS_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-secret" (include "redis-sentinel.fullname" .) }}
+                  key: 'redis-password'
+          command:
+            - bash
+            - "-ce"
+            - |
+              echo "Copying configuration file"
+              cp /tmp/redis/redis.conf /etc/redis/redis.conf 
+              cp /tmp/redis/sentinel.conf /etc/redis/sentinel.conf
+              sed -i s/%port-number%/{{ .Values.redis.containerPorts.redis }}/g /etc/redis/redis.conf
+              sed -i "s/%data-dir%/\{{ .Values.redis.persistence.path }}/g" /etc/redis/redis.conf 
+              set -ex
+              [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+              ordinal=${BASH_REMATCH[1]}
+              if [ "$ordinal" == "0" ]; then
+                echo "This is master, add user only."
+                {{- if and .Values.auth.enabled }}
+                cp /tmp/acl/acl.conf /etc/redis/acl.conf
+                echo -e "\naclfile /etc/redis/acl.conf" >> /etc/redis/redis.conf
+                {{- end }}
+              else
+                {{- $fullName := include "redis-sentinel.fullname" . }}
+                {{- $releaseName := .Release.Namespace }}
+                {{- $clusterDomain := .Values.clusterDomain }}
+                echo "This is not master, Updating redis.conf. finding master FQDN"
+                MASTER_FDQN="{{ printf "%s-node-0.%s-headless.%s.svc.%s" $fullName $fullName $releaseName $clusterDomain }}"
+                echo -e "\nreplicaof $MASTER_FDQN {{ .Values.redis.containerPorts.redis }}" >> /etc/redis/redis.conf
+                {{- if and .Values.auth.enabled }}
+                echo -e "\nmasteruser {{ .Values.auth.replication.user }}" >> /etc/redis/redis.conf
+                echo -e "\nmasterauth $REDIS_MASTER_PASSWORD" >> /etc/redis/redis.conf
+                {{- end }}
+              fi
+        
+          volumeMounts:
+          - name: redis-config
+            mountPath: /etc/redis/
+          - name: config
+            mountPath: /tmp/redis/
+          {{- if .Values.auth.enabled }}
+          - name: acl
+            mountPath: /tmp/acl/
+          {{- end }}
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy | quote }}
+          command:
+            - redis-server
+            - /etc/redis/redis.conf
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.containerPorts.redis }}
+          {{- if .Values.redis.livenessProbe.enabled }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.redis.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.redis.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.redis.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.redis.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.redis.livenessProbe.failureThreshold }}
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local.sh {{ .Values.redis.livenessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.redis.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.redis.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.redis.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.redis.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.redis.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.redis.readinessProbe.failureThreshold }}
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local.sh {{ .Values.redis.readinessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.redis.resources }}
+          resources: {{- toYaml .Values.redis.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: redis-config
+              mountPath: /etc/redis/
+            - name: health
+              mountPath: /health
+            {{- if .Values.redis.persistence.enabled }}
+            - name: redis-data
+              mountPath: {{ .Values.redis.persistence.path }}
+              subPath: {{ .Values.redis.persistence.subPath }}
+            {{- end }}
+        - name: sentinel
+          image: "{{ .Values.sentinel.image.repository }}:{{ .Values.sentinel.image.tag }}"
+          imagePullPolicy: {{ .Values.sentinel.image.pullPolicy | quote }}
+          
+          command:
+            - redis-sentinel
+            - /etc/redis/sentinel.conf            
+          ports:
+            - name: redis-sentinel
+              containerPort: {{ .Values.sentinel.containerPorts.sentinel }}
+          {{- if .Values.sentinel.livenessProbe.enabled }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.sentinel.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.sentinel.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.sentinel.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.sentinel.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.sentinel.livenessProbe.failureThreshold }}
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_sentinel.sh {{ .Values.sentinel.livenessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.sentinel.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.sentinel.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.sentinel.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.sentinel.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.sentinel.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.sentinel.readinessProbe.failureThreshold }}
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_sentinel.sh {{ .Values.sentinel.readinessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.sentinel.resources }}
+          resources: {{- toYaml .Values.sentinel.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: redis-config
+              mountPath: /etc/redis/
+            - name: health
+              mountPath: /health
+            - name: sentinel-data
+              mountPath: /data
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: "{{ .Values.metrics.image.repository }}:{{ .Values.metrics.image.tag }}"
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              redis_exporter{{- range $key, $value := .Values.metrics.extraArgs }} --{{ $key }}={{ $value }}{{- end }}
+          env:
+            - name: REDIS_ALIAS
+              value: {{ template "redis-sentinel.fullname" . }}
+            {{- if .Values.auth.enabled }}
+            - name: REDIS_USER
+              value: default
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-secret" (include "redis-sentinel.fullname" .) }}
+                  key: redis-password
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: 9121
+          {{- if .Values.metrics.resources }}
+          resources: {{- toYaml .Values.metrics.resources | nindent 12 }}
+          {{- end }}
+
+        {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ printf "%s-configuration" (include "redis-sentinel.fullname" .) }}
+        {{- if .Values.auth.enabled }}
+        - name: acl
+          configMap:
+            name: {{ printf "%s-acl" (include "redis-sentinel.fullname" .) }}
+        {{- end }}
+        - name: redis-config
+          emptyDir: {}
+        - name: health
+          configMap:
+            name: {{ printf "%s-health" (include "redis-sentinel.fullname" .) }}
+            defaultMode: 0755
+        {{- if not .Values.sentinel.persistence.enabled }}
+        - name: sentinel-data
+          emptyDir: {}
+        {{- end }} 
+        {{- if not .Values.redis.persistence.enabled }}
+        - name: redis-data
+          emptyDir: {}
+        {{- end }}
+  {{- if or .Values.redis.persistence.enabled .Values.sentinel.persistence.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.redis.persistence.enabled }}
+    - metadata:
+        name: redis-data
+        labels: {{- include "redis-sentinel.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+        {{- range .Values.redis.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size | quote }}
+    {{- end }}
+    {{- if .Values.sentinel.persistence.enabled }}
+    - metadata:
+        name: sentinel-data
+        labels: {{- include "redis-sentinel.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+        {{- range .Values.sentinel.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.sentinel.persistence.size | quote }}
+    {{- end }}
+  {{- end }}
+
