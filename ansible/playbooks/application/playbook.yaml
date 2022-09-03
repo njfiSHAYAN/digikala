@@ -1,0 +1,80 @@
+- name: deploy application blue green
+  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  tasks:
+    - name: check if previous versions are deployed as blue
+      kubernetes.core.helm_info:
+        name: "{{ app_release_name }}-blue"
+        release_namespace: default
+      register: results
+    
+    - name: set current version to blue if it is the case
+      set_fact:
+        current: blue
+        next: green
+      when: "'status' in results"
+
+    - name: check if previous versions are deployed as green
+      kubernetes.core.helm_info:
+        name: "{{ app_release_name }}-green"
+        release_namespace: default
+      register: results
+      when: "current is not defined"
+    
+    - name: set current version to blue if it is the case
+      set_fact:
+        current: green
+        next: blue
+      when: "current is not defined and 'status' in results"
+
+    - name: just deploy application if neither blue nor green exist in blue environment
+      import_role:
+        name: "apply-helmChart"
+      when: "current is not defined"
+      vars:
+        chart_name: "digiapp"
+        chart_src: "../../../helmCharts"
+        chart_dest: "/tmp/mycharts"
+        chart_owner: "{{ ansible_user_id }}"
+        chart_group: "{{ ansible_user_id }}"
+        chart_mode: 0644
+        values_enabled: true
+        values_src: "myvalues.yaml"
+        values_file_name: "values.yaml"
+        values_dest: "/tmp/mycharts"
+        values_owner: "{{ ansible_user_id }}"
+        values_group: "{{ ansible_user_id }}"
+        values_mode: 0644
+        release_name: "{{ app_release_name }}-blue"
+        release_namespace: "default"
+        kubeconfig: ~/admin.conf
+
+
+    - name: terminate ansible
+      meta: end_play
+      when: "current is not defined"
+
+    - name: apply helm chart in new environment (blue or green depending on old environment)
+      import_role:
+        name: "apply-helmChart"
+      vars:
+        chart_name: "digiapp"
+        chart_src: "../../../../helmCharts"
+        chart_dest: "/tmp/mycharts"
+        chart_owner: "{{ ansible_user_id }}"
+        chart_group: "{{ ansible_user_id }}"
+        chart_mode: 0644
+        values_enabled: true
+        values_src: "myvalues.yaml"
+        values_file_name: "values.yaml"
+        values_dest: "/tmp/mycharts"
+        values_owner: "{{ ansible_user_id }}"
+        values_group: "{{ ansible_user_id }}"
+        values_mode: 0644
+        release_name: "{{ app_release_name }}-{{ next }}"
+        release_namespace: "default"
+        kubeconfig: ~/admin.conf
+
+        values:
+          ingress:
+            enabled: false
+
