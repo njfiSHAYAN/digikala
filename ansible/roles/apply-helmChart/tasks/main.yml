@@ -19,7 +19,7 @@
     mode: " {{ values_mode }}"
   when: "values_enabled is true"
 
-- name: install charts
+- name: install charts with values file. skip if not available
   kubernetes.core.helm:
     kubeconfig: "{{ kubeconfig }}"
     name: "{{ release_name }}"
@@ -29,3 +29,14 @@
     atomic: yes
     values_files:
       - "{{ values_dest }}/{{ values_file_name }}"
+  when: "values_enabled is true"
+
+- name: install charts without values file. helm is already installed if values file is provided
+  kubernetes.core.helm:
+    kubeconfig: "{{ kubeconfig }}"
+    name: "{{ release_name }}"
+    chart_ref: "{{ chart_dest }}/{{ chart_name }}"
+    release_namespace: "{{ release_namespace }}"
+    create_namespace: yes
+    atomic: yes
+  when: "values_enabled is false"
