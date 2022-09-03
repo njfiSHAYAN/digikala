@@ -121,7 +121,7 @@ prometheus:
   app:
     enabled: true
     # the name of the service which is connected to app. used to scrapt app metrics
-    serviceName: "digiApp"
+    serviceName: "app-digiApp"
   
   # target parameter for blackbox.
   # will be set to prometheus.app.serviceName if not specified EVEN IF prometheus.app.enabled is false
