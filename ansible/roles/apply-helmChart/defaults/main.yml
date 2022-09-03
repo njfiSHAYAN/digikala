@@ -10,8 +10,9 @@ chart_mode: 0644
 # values file info to copy to destination and is used in chart installation.
 # ignores values file if values_enabled is false
 values_enabled: false
-values_src: "values.yaml"
-values_dest: "/tmp/charts"
+values_src: "values.yaml"          # path to values file inside host
+values_file_name: "values.yaml"    # values file name inside target
+values_dest: "/tmp/charts"         # the directory in which values file will be stored 
 values_owner: "{{ ansible_user_id }}"
 values_group: "{{ ansible_user_id }}"
 values_mode: 0644
