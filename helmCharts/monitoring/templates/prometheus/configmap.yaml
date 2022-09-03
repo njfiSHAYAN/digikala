@@ -208,7 +208,7 @@ data:
 
 
       {{- if .Values.prometheus.app.enabled }}
-      - job_name: 'Application'
+      - job_name: 'application'
         static_configs:
           - targets: [{{ .Values.prometheus.app.serviceName }}]
       {{- end }}
