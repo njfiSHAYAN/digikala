@@ -34,7 +34,7 @@ def add_qoute(
 
 
 @router.get("/qoutes/", response_model=List[schemas.Qoute])
-def add_qoute(
+def get_qoute(
     db: Session = Depends(get_db),
     user: schemas.User = Depends(get_user),
 ):
@@ -59,6 +59,6 @@ def get_counter(user: schemas.User = Depends(get_user)):
 
 
 @router.get("/log/", response_model=List[datetime])
-def get_counter(db: Session = Depends(get_db), user: schemas.User = Depends(get_user)):
+def get_logs(db: Session = Depends(get_db), user: schemas.User = Depends(get_user)):
     logger.info(f"user {user} is trying to get access logs")
     return crud.get_access_logs(db, user)

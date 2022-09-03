@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jenkins.fullname" . }}
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "jenkins.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "jenkins.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "printenv CONFIG_FILE_CONTENT > /var/jenkins_home/casc.yaml"]
+          env:
+            - name: CONFIG_FILE_CONTENT
+              valueFrom:
+                configMapKeyRef:
+                  name: casc-config-file
+                  key: casc.yaml
+            - name: JAVA_OPTS
+              value: -Djenkins.install.runSetupWizard=false
+            - name: CASC_JENKINS_CONFIG
+              value: /var/jenkins_home/casc.yaml
+            - name: JENKINS_ADMIN_ID
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ .Release.Name }}-auth 
+            - name: JENKINS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ .Release.Name }}-auth  
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- range .Values.volumeMounts }}
+          volumeMounts:
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- range .Values.volumes }}
+      volumes:
+        - name: {{ .name }}
+          {{- with .hostPath }}
+          hostPath:
+            path: {{ .path }}
+            type: {{ .type }}
+          {{- end }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
