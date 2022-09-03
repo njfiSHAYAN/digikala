@@ -26,9 +26,9 @@
     chart_ref: "{{ chart_dest }}/{{ chart_name }}"
     release_namespace: "{{ release_namespace }}"
     create_namespace: yes
-    atomic: yes
     values_files:
       - "{{ values_dest }}/{{ values_file_name }}"
+    values: "{{ values }}"
   when: "values_enabled is true"
 
 - name: install charts without values file. helm is already installed if values file is provided
@@ -38,5 +38,5 @@
     chart_ref: "{{ chart_dest }}/{{ chart_name }}"
     release_namespace: "{{ release_namespace }}"
     create_namespace: yes
-    atomic: yes
+    values: "{{ values }}"
   when: "values_enabled is false"
