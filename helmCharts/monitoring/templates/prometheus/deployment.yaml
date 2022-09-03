@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring.prometheus.fullname" . }}
+  labels:
+    {{- include "monitoring.prometheus.selectorLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "monitoring.prometheus.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.prometheus.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "monitoring.prometheus.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.prometheus.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "monitoring.prometheus.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.prometheus.containerName }}
+          securityContext:
+            {{- toYaml .Values.prometheus.securityContext | nindent 12 }}
+          image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
+          args:
+          {{- range .Values.prometheus.runArgs }}
+            - {{ tpl . $ }}
+          {{- end}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.prometheus.image.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: {{ .Values.prometheus.image.port }}
+              {{- include "monitoring.prometheus.authHeaders" . | nindent 14 }}
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: {{ .Values.prometheus.image.port }}
+              {{- include "monitoring.prometheus.authHeaders" . | nindent 14 }}
+          {{- with .Values.prometheus.resources }}
+          resources:
+            limits:
+              cpu: {{ .limits.cpu }}
+              memory: {{ .limits.memory }}
+            requests:
+              cpu: {{ .requests.cpu }}
+              memory: {{ .requests.memory }}
+          {{- end }}
+          volumeMounts:
+            - name: prometheus-configs
+              mountPath: {{ .Values.prometheus.configurations.config_dir }}
+            - name: prometheus-data
+              mountPath: {{ .Values.prometheus.tsdbPath }}
+      volumes:
+        - name: prometheus-configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.prometheus.cmname" . }}
+        - name: prometheus-data
+          emptyDir: {}
+      {{- with .Values.prometheus.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prometheus.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prometheus.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

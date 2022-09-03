@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring.alertManager.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- include "monitoring.alertManager.selectorLabels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+    {{- include "monitoring.alertManager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.alertManager.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+      {{- include "monitoring.alertManager.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.alertManager.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.alertManager.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Values.alertManager.containerName }}
+        securityContext:
+          {{- toYaml .Values.alertManager.securityContext | nindent 10 }}
+        image: {{ .Values.alertManager.image.repository }}:{{ .Values.alertManager.image.tag }}
+        imagePullPolicy: {{ .Values.alertManager.image.pullPolicy }}
+        args:
+        {{- range .Values.alertManager.runArgs }}
+          - {{ tpl . $ }}
+        {{- end}}
+        ports:
+        - containerPort: {{ .Values.alertManager.image.port }}
+        {{- with .Values.alertManager.resources }}
+        resources:
+          limits:
+            cpu: {{ .limits.cpu }}
+            memory: {{ .limits.memory }}
+          requests:
+            cpu: {{ .requests.cpu }}
+            memory: {{ .requests.memory }}
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: {{ .Values.alertManager.image.port }}
+            {{- include "monitoring.alertManager.authHeaders" . | nindent 12 }}
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: {{ .Values.alertManager.image.port }}
+            {{- include "monitoring.alertManager.authHeaders" . | nindent 12 }}
+
+        volumeMounts:
+          - name: configs
+            mountPath: {{ .Values.alertManager.configurations.config_dir }}
+      volumes:
+        - name: configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.alertManager.cmname" . }}
+      {{- with .Values.alertManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.alertManager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.alertManager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,376 @@
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: monitoring.local
+      paths:
+        - path: /
+          pathType: Prefix
+          # make sure to serviceName and servicePort this using tpl function
+          serviceName: "{{ .Values.prometheus.service.name }}"
+          servicePort: "{{ .Values.prometheus.service.port }}"
+    - host: alertman.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: "{{ .Values.alertManager.service.name }}"
+          servicePort: "{{ .Values.alertManager.service.port }}"
+    - host: grafana.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: "{{ .Values.grafana.service.name }}"
+          servicePort: "{{ .Values.grafana.service.port }}"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+
+# prometheus is used to deploy prometheus configurations
+prometheus:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+
+  containerName: "prometheus-container"
+
+  image:
+    repository: docker.io/prom/prometheus
+    pullPolicy: IfNotPresent
+    tag: "v2.38.0"
+    port: 9090
+  
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+
+  # tsdbPath is the path where tsdb data will be stored in the container
+  tsdbPath: "/prometheus/"
+
+  runArgs:
+    - "--config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.mainConfig.file_name }}"
+    - "--storage.tsdb.path={{ .Values.prometheus.tsdbPath }}"
+    - "--web.config.file={{ .Values.prometheus.configurations.config_dir }}{{ .Values.prometheus.configurations.webConfig.file_name }}"
+
+  affinity: {}
+
+  tolerations: []
+
+  nodeSelector: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    port: 9090
+    name: prometheusui
+    type: ClusterIP
+  
+  clusterRole:
+    name: ""
+    apiGroupsList:
+      - apiGroups: [""]
+        resources:
+          - nodes
+          - nodes/proxy
+          - services
+          - endpoints
+          - pods
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+        - extensions
+        resources:
+        - ingresses
+        verbs:
+          - get
+          - list
+          - watch
+    nonResourceURLsList:
+      - nonResourceURLs: 
+          - /metrics
+        verbs: 
+          - get
+
+  resources:
+    limits:
+      cpu: 800m
+      memory: 2048Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  # application info to scrape
+  app:
+    enabled: true
+    # the name of the service which is connected to app. used to scrapt app metrics
+    serviceName: "digiApp"
+  
+  # target parameter for blackbox.
+  # will be set to prometheus.app.serviceName if not specified EVEN IF prometheus.app.enabled is false
+  # TODO: it should be set to application address
+  blackboxTarget: ""
+  
+  # configurations contains different prometheus config data, such as main config, web config and rules
+  # configurations exist in _helpers_prometheus.tpl file.
+  # in the config map file configs written here are imported using tpl function.
+  # in fact in this file "include" doesn't include any thing. tpl function includes data you specified here
+  configurations:
+    configMapName: ""
+    # prometheus configs will be stored in config_dir
+    config_dir: "/etc/prometheus/"
+    mainConfig:
+      file_name: "prometheus.yaml" 
+      scrape_interval: 5s
+      evaluation_interval: 5s 
+    rules:
+      file_name: "rules.yaml" 
+    # TODO: DO NOT FORGET TO CREATE A STRONG USERNAME AND PASSWORD
+    webConfig: 
+      file_name: "web.yaml"
+      authentication:
+        enabled: true
+        username: admin
+        password: password
+
+
+nodeExporter:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+
+  image:
+    repository: docker.io/prom/node-exporter
+    pullPolicy: IfNotPresent
+    tag: "v1.3.1"
+
+
+  containerName: node-exporter
+
+  # in runArgs there is no need to include path to /sys and /
+  runArgs:
+    - --no-collector.wifi
+    - --no-collector.hwmon
+    - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)
+    - --collector.netclass.ignored-devices=^(veth.*)$
+
+  # in order to get the status of node some directories such as /sys should be mounted to container
+  # mountPaths defines these sorts of configurations.
+  mountPaths:
+    # sys illustrates where /sys will be mounted
+    sys:
+      enabled: true
+      path: "/host/sys"
+      hostPath: "/sys"
+
+    # root illustrates where / will be mounted
+    root:
+      enabled: true
+      path: "/host/root"
+      hostPath: "/"
+  resources:
+    limits:
+      cpu: 250m
+      memory: 180Mi
+    requests:
+      cpu: 102m
+      memory: 180Mi
+    
+  service:
+    port: 9100
+    name: node-exporter-svc
+
+    annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '9100'
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      effect: NoSchedule
+
+alertManager:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+  containerName: alert-manager
+
+  podSecurityContext: {}
+
+  image:
+    repository: docker.io/prom/alertmanager
+    pullPolicy: IfNotPresent
+    tag: "v0.24.0"
+    port: 9093
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  service:
+    port: 9093
+    name: alertmanager
+
+  runArgs:
+    - "--config.file={{ .Values.alertManager.configurations.config_dir }}{{ .Values.alertManager.configurations.mainConfig.file_name }}"
+    - "--web.config.file={{ .Values.alertManager.configurations.config_dir }}{{ .Values.alertManager.configurations.webConfig.file_name }}"
+
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/alertManager/"
+    mainConfig:
+      resolve_timeout: 5m
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 30s
+      file_name: alertManager.yaml
+    webConfig:
+      file_name: web.yaml
+      authentication:
+        enabled: true
+        username: admin
+        password: password
+
+  emailInfo:
+    to: "sobhan.saf79@gmail.com"
+    from: "digiprojectalertmanager@gmail.com"
+    smtpServer: "smtp.gmail.com:587"
+    authUsername: "digiprojectalertmanager@gmail.com"
+    authIdentity: "digiprojectalertmanager@gmail.com"
+    authPassword: "tmdomrsefzgqrbpv"
+
+  affinity: {}
+
+  tolerations: []
+
+  nodeSelector: {}
+  securityContext: {}
+
+
+
+grafana:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+  podSecurityContext: {}
+
+  securityContext: {}
+
+
+  image:
+    repository: docker.io/grafana/grafana
+    pullPolicy: IfNotPresent
+    tag: "9.1.1"
+    port: 3000
+
+  containerName: grafana
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  createAdminUser:
+    enabled: true
+    user: "admin"
+    password: "password"
+
+  runArgs:
+
+  service:
+    port: 3000
+    name: grafana
+
+  affinity: {}
+
+  tolerations: []
+
+  nodeSelector: {}
+
+  # envVars contain environement variables inside grafana container
+  # no need to specify admin username and password. use createAdminUser instead.
+  envVars: {}
+    # foo: bar
+    # x: y
+
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/grafana/"
+    
+    # in our case grafana only uses one prometeheus as resource
+    # url will be set to prometheus service. also basic auth will be handled 
+    datasources:
+      file_name: "ds.yaml"
+      name: prometheus
+      type: prometheus
+      access: proxy
+      
+
+blackbox:
+  fullnameOverride: ""
+  nameOverride: ""
+  podAnnotations: {}
+  imagePullSecrets: []
+  containerName: alert-manager
+
+  image:
+    repository: prom/blackbox-exporter
+    pullPolicy: IfNotPresent
+    tag: "v0.22.0"
+    port: 9115
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    port: 9115
+    name: blackbox
+
+  configurations:
+    configMapName: ""
+    config_dir: "/etc/blackbox/"
+    mainConfig:
+      file_name: blackbox.yaml
+  
+  securityContext: {}
+  imagePullSecrets: []
+  podSecurityContext: {}
+
+  runArgs:
+    - "--config.file={{ .Values.blackbox.configurations.config_dir }}{{ .Values.blackbox.configurations.mainConfig.file_name }}"
+
+  affinity: {}
+
+  tolerations: []
+
+  nodeSelector: {}

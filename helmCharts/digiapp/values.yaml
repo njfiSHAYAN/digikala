@@ -11,14 +11,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
 
 podAnnotations: {}
 
@@ -55,12 +47,6 @@ ingress:
 
 resources: {}
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
@@ -73,8 +59,30 @@ affinity: {}
 secretConfig:
   enabled: true
   data: 
-    "ewogICAgImRiIjogewogICAgICAgICJlbmdpbmUiOiAic3FsaXRlIiwKICAgICAgICAic3FsX2FsY2hlbXlfdXJsIjogInNxbGl0ZTovLy8uL3NxbF9hcHAuZGIiLAogICAgICAgICJjcmVhdGVfZW5naW5lX2FyZ3MiOiB7CiAgICAgICAgICAgICJjb25uZWN0X2FyZ3MiOiB7CiAgICAgICAgICAgICAgICAiY2hlY2tfc2FtZV90aHJlYWQiOiBmYWxzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfSwKICAgICJwYXNzd29yZF9zYWx0X2xlbmd0aCI6IDQsCiAgICAidXNlcnMiOiB7CiAgICAgICAgImp3dF9zZWNyZXQiOiAiU1RST05HX1NFQ1JFVCIsCiAgICAgICAgInRva2VuX2R1cmF0aW9uX3NlY29uZHMiOiA4NjQwMAogICAgfSwKICAgICJyZWRpcyI6IHsKICAgICAgICAiaG9zdCI6ICJ0aGVyZWRpcy1tYXN0ZXIiLAogICAgICAgICJwb3J0IjogIjYzNzkiLAogICAgICAgICJkYiI6IDAsCiAgICAgICAgInBhc3N3b3JkIjogInJlZGlzIgogICAgfQp9"
-  
+
+    # db config
+    db:
+      engine: sqlite
+      sql_url: sqlite:///./sql_app.db
+      create_engine_args: 
+        connect_args: 
+          check_same_thread: false
+
+    # length of salt used in hashing of user passwords
+    password_salt_length: 4
+    
+    # user tokens config
+    users:
+      jwt_secret: STRONG_SECRET
+      token_duration_seconds: 86400
+    
+    # redis config
+    redis:
+      host: redis
+      port: 6379
+      db: 0
+      password: redis
+
   secret_name: app-secret
   secret_type: Opaque
 
