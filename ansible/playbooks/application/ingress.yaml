@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Ingress
+metadata:
+  name: digiapp-ingress
+  labels:
+    type: ingress
+    name: digiapp-ingress
+spec:
+  rules:
+    - host: "digiapp.local"
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: "digiapp-blue"
+                port:
+                  number: 80

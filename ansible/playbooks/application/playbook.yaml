@@ -26,27 +26,40 @@
         next: blue
       when: "current is not defined and 'status' in results"
 
-    - name: just deploy application if neither blue nor green exist in blue environment
-      import_role:
-        name: "../../roles/apply-helmChart"
+    - name: just deploy application if neither blue nor green exist in blue environment and create ingress
       when: "current is not defined"
-      vars:
-        chart_name: "digiapp"
-        chart_src: "../../../helmCharts"
-        chart_dest: "/tmp/mycharts"
-        chart_owner: "{{ ansible_user_id }}"
-        chart_group: "{{ ansible_user_id }}"
-        chart_mode: 0644
-        values_enabled: true
-        values_src: "myvalues.yaml"
-        values_file_name: "values.yaml"
-        values_dest: "/tmp/mycharts"
-        values_owner: "{{ ansible_user_id }}"
-        values_group: "{{ ansible_user_id }}"
-        values_mode: 0644
-        release_name: "{{ app_release_name }}-blue"
-        release_namespace: "default"
-        kubeconfig: ~/admin.conf
+      block:
+        - name: apply helm chart
+          import_role:
+            name: "../../roles/apply-helmChart"
+          vars:
+            chart_name: "digiapp"
+            chart_src: "../../../helmCharts"
+            chart_dest: "/tmp/mycharts"
+            chart_owner: "{{ ansible_user_id }}"
+            chart_group: "{{ ansible_user_id }}"
+            chart_mode: 0644
+            values_enabled: true
+            values_src: "myvalues.yaml"
+            values_file_name: "values.yaml"
+            values_dest: "/tmp/mycharts"
+            values_owner: "{{ ansible_user_id }}"
+            values_group: "{{ ansible_user_id }}"
+            values_mode: 0644
+            release_name: "{{ app_release_name }}-blue"
+            release_namespace: "default"
+            kubeconfig: ~/admin.conf
+
+            values:
+              ingress:
+                enabled: false
+
+        - name: create an ingress resource
+          kubernetes.core.k8s:
+            state: present
+            src: ingress.yaml
+            namespace: default
+
 
     - name: terminate ansible
       meta: end_play
@@ -111,3 +124,21 @@
 
         - name: terminate ansible
           meta: end_play
+
+    - name: route traffic to new service if everything is OK
+      kubernetes.core.k8s_json_patch:
+        kind: Ingress
+        namespace: default
+        name: digiapp-ingress
+        patch:
+          - op: replace
+            path: /spec/rules/0/http/paths/0/backend/service/name
+            value: "{{ app_release_name }}-{{ next }}"
+
+    - name: delete old deployment
+      kubernetes.core.helm:
+        state: absent
+        name: "{{ app_release_name }}-{{ current }}"
+        release_namespace: "default"
+        kubeconfig: ~/admin.conf
+            
