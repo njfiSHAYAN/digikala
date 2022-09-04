@@ -1,6 +1,11 @@
 ---
-# - name: install helm
-#   include_tasks: "install-helm.yaml"
+- name: gather package info to see if helm is installed
+  package_facts:
+    manager: apt
+
+- name: install helm
+  include_tasks: "install-helm.yaml"
+  when: "'helm' not in ansible_facts.packages"
 
 - name: copy chart to host
   copy:
