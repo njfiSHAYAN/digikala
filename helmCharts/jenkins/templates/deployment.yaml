@@ -4,6 +4,9 @@ metadata:
   name: {{ include "jenkins.fullname" . }}
   labels:
     {{- include "jenkins.labels" . | nindent 4 }}
+  annotations:
+    container.apparmor.security.beta.kubernetes.io/img: unconfined
+    container.seccomp.security.alpha.kubernetes.io/img: unconfined
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}

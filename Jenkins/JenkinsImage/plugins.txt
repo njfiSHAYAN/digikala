@@ -6,9 +6,6 @@ cloudbees-folder:latest
 configuration-as-code:latest
 credentials:latest
 credentials-binding:latest
-docker-plugin
-docker-commons
-docker-workflow
 email-ext:latest
 git:latest
 github-branch-source:latest

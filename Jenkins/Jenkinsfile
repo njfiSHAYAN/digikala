@@ -1,35 +1,34 @@
 pipeline {
-    agent { docker { image 'docker:dind' } }
+    agent any
     environment {
-        version = BUILD_TAG
+        registry = "shayannjf/digiapp"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
     }
-    // connect to git
     stages {
+        // connect to git
         stage('Cloning Git') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/jenkins']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: repositoryCredential, url: repositoryUrl]]])       
             }
         }
     
-    // Building Docker images
-    stage('Building image') {
-      steps{
-         sh "docker build -t shayannjf/digiapp:${version} ./application/Dockerfile"
-      }
-    }
-    
-     // Uploading Docker images into Docker Hub
-    stage('Upload Image') {
-     steps{    
-         script {
-            docker.withRegistry( '', registryCredential ) {
-            dockerImage.push()
-            }
+        // Building Docker images
+        stage('Building image') {
+           steps {
+               sh "img build -t ${registry}:${BUILD_TAG} ./application"
+           }
         }
-      }
-    }
+
+        // Pushing image
+        stage('Pushing image') {
+           steps {
+               withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                  sh 'img login --username $USERNAME --password $PASSWORD'
+                }
+                  sh "img push ${registry}:${BUILD_TAG}"
+           }
+        }
   }
 }

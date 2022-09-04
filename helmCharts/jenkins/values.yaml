@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: shayannjf/jenkins
+  repository: shayannjf/myjenkins
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: jcasc
@@ -25,8 +25,9 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
   # fsGroup: 2000
+  runAsUser: 0
 
 securityContext: 
   # capabilities:
@@ -34,7 +35,9 @@ securityContext:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
-  runAsUser: 0
+   runAsUser: 0
+   procMount: Unmasked
+   privileged: true
 
 service:
   type: ClusterIP
@@ -84,24 +87,12 @@ affinity: {}
 volumeMounts:
   - name: jenkins-vol
     mountPath: /var/jenkins_home
-  - name: docker-socket
-    mountPath: /var/run/docker.sock
-  - name: docker-directory
-    mountPath: /usr/bin/docker
 
 volumes:
   - name: jenkins-vol
     hostPath:
       path: /var/jenkins_vol
       type: Directory
-  - name: docker-socket
-    hostPath:
-      path: /var/run/docker.sock
-      type: Socket
-  - name: docker-directory
-    hostPath:
-      path: /usr/bin/docker
-      type: File
 
 username: admin
 password: password
