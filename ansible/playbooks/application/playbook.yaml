@@ -48,7 +48,6 @@
         release_namespace: "default"
         kubeconfig: ~/admin.conf
 
-
     - name: terminate ansible
       meta: end_play
       when: "current is not defined"
@@ -100,3 +99,15 @@
         local_port: 24781
         service_port: 80
     
+    - name: delete new version if test results are not as expected
+      when: "results.stdout != '404\n200'"
+      block:
+        - name: uninstall new version
+          kubernetes.core.helm:
+            state: absent
+            name: "{{ app_release_name }}-{{ next }}"
+            release_namespace: "default"
+            kubeconfig: ~/admin.conf
+
+        - name: terminate ansible
+          meta: end_play
