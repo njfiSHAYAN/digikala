@@ -63,7 +63,7 @@ secretConfig:
     # db config
     db:
       engine: sqlite
-      sql_url: sqlite:///./sql_app.db
+      sql_alchemy_url: sqlite:///./sql_app.db
       create_engine_args: 
         connect_args: 
           check_same_thread: false

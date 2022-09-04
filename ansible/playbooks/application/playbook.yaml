@@ -50,6 +50,8 @@
             release_namespace: "default"
             kubeconfig: ~/admin.conf
 
+            wait: false
+
             values:
               ingress:
                 enabled: false
@@ -57,7 +59,7 @@
         - name: create an ingress resource
           kubernetes.core.k8s:
             state: present
-            src: ingress.yaml
+            template: ingress.yaml
             namespace: default
 
 
