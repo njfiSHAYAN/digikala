@@ -14,7 +14,6 @@ pipeline {
             }
         }
     
-<<<<<<< HEAD
         // Building Docker images
         stage('Building image') {
            steps {
@@ -30,22 +29,6 @@ pipeline {
                 }
                   sh "img push ${registry}:${BUILD_TAG}"
            }
-=======
-    // Building Docker images
-    stage('Building image') {
-      steps{
-         sh "docker build -t shayannjf/digiapp:${version} ./application/Dockerfile"
-      }
-    }
-    
-     // Uploading Docker images into Docker Hub
-    stage('Upload Image') {
-     steps{    
-         script {
-            docker.withRegistry( '', registryCredential ) {
-            dockerImage.push()
-               }
->>>>>>> c24308cb91f443b531f7e489ade20a7976dfe147
         }
   }
 }
