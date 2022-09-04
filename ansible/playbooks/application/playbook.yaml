@@ -28,7 +28,7 @@
 
     - name: just deploy application if neither blue nor green exist in blue environment
       import_role:
-        name: "apply-helmChart"
+        name: "../../roles/apply-helmChart"
       when: "current is not defined"
       vars:
         chart_name: "digiapp"
@@ -53,9 +53,9 @@
       meta: end_play
       when: "current is not defined"
 
-    - name: apply helm chart in new environment (blue or green depending on old environment)
+    - name: apply helm chart with out ingress in new environment (blue or green depending on old environment) and wait for resources
       import_role:
-        name: "apply-helmChart"
+        name: "../../roles/apply-helmChart"
       vars:
         chart_name: "digiapp"
         chart_src: "../../../../helmCharts"
@@ -74,7 +74,29 @@
         release_namespace: "default"
         kubeconfig: ~/admin.conf
 
+        wait: true
+
         values:
           ingress:
             enabled: false
 
+    - name: check if everything is ok
+      become: false
+      shell: |-
+        kubectl port-forward service/{{ service }} {{ local_port }}:{{ service_port }} >/dev/null 2>&1 &
+        sleep 1
+        status=$(curl -s -o /dev/null -w "%{http_code}" localhost:{{ local_port }})
+        echo $status
+        status=$(curl -s -o /dev/null -w "%{http_code}" localhost:{{ local_port }}/docs)
+        echo $status
+        pss=$(ps aux | grep "port-forward service/{{ service }}" | \
+          grep "{{ local_port }}:{{ service_port }}" | grep -v "grep" | tr -s ' ' | cut -f 2 -d ' ')
+        kill $pss
+
+      register: results
+      vars:
+        next: blue
+        service: "digiapp-{{ next }}"
+        local_port: 24781
+        service_port: 80
+    

@@ -1,6 +1,6 @@
 ---
-- name: install helm
-  include_tasks: "install-helm.yaml"
+# - name: install helm
+#   include_tasks: "install-helm.yaml"
 
 - name: copy chart to host
   copy:
@@ -29,6 +29,7 @@
     values_files:
       - "{{ values_dest }}/{{ values_file_name }}"
     values: "{{ values }}"
+    wait: "{{ wait }}"
   when: "values_enabled is true"
 
 - name: install charts without values file. helm is already installed if values file is provided
@@ -39,4 +40,5 @@
     release_namespace: "{{ release_namespace }}"
     create_namespace: yes
     values: "{{ values }}"
+    wait: "{{ wait }}"
   when: "values_enabled is false"
