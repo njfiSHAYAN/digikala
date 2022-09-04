@@ -60,7 +60,7 @@ spec:
       volumes:
         - name: {{ .Values.secretConfig.volume_name }}
           secret:
-            secretName: {{ .Values.secretConfig.secret_name }}
+            secretName: {{ .Values.secretConfig.secret_name }}-{{ .Release.Name }}
       {{- end}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
