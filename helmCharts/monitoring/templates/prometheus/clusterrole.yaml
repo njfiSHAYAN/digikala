@@ -1,0 +1,34 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "monitoring.prometheus.clusterRoleNmae" . }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+rules:
+  {{- range .Values.prometheus.clusterRole.apiGroupsList }}
+  - apiGroups: 
+    {{- range .apiGroups }}
+    - {{ . | quote }}
+    {{- end }}
+    resources:
+    {{- range .resources }}
+      - {{ . }}
+    {{- end }}
+    verbs:
+    {{- range .verbs }}
+      - {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.prometheus.clusterRole.nonResourceURLsList }}
+  {{- range .Values.prometheus.clusterRole.nonResourceURLsList }}
+  - nonResourceURLs:
+  {{- range .nonResourceURLs }}
+    - {{ . }}
+  {{- end }}
+    verbs:
+  {{- range .verbs }}
+    - {{ . }}
+  {{- end }}
+  {{- end }}
+  {{- end }}

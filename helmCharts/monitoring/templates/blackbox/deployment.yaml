@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "monitoring.blackbox.selectorLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+  name: {{ include "monitoring.blackbox.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "monitoring.blackbox.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.blackbox.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "monitoring.blackbox.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.blackbox.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.blackbox.podSecurityContext | nindent 8 }}
+      containers:
+      - securityContext:
+          {{- toYaml .Values.blackbox.securityContext | nindent 10 }}
+        name: {{ .Values.blackbox.containerName }}
+        image: {{ .Values.blackbox.image.repository }}:{{ .Values.blackbox.image.tag }}
+        imagePullPolicy: {{ .Values.blackbox.image.pullPolicy }}
+        args:
+        {{- range .Values.blackbox.runArgs }}
+          - {{ tpl . $ }}
+        {{- end}}
+        ports:
+        - containerPort: {{ .Values.blackbox.image.port }}
+        {{- with .Values.blackbox.resources }}
+        resources:
+          limits:
+            cpu: {{ .limits.cpu }}
+            memory: {{ .limits.memory }}
+          requests:
+            cpu: {{ .requests.cpu }}
+            memory: {{ .requests.memory }}
+        {{- end }}
+        volumeMounts:
+          - name: configs
+            mountPath: {{ .Values.blackbox.configurations.config_dir }}
+      volumes:
+        - name: configs
+          configMap:
+            defaultMode: 420
+            name: {{ include "monitoring.blackbox.cmname" . }}
+
+      {{- with .Values.blackbox.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.blackbox.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.blackbox.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

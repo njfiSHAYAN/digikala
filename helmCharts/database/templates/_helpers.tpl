@@ -41,7 +41,7 @@ Return the secret with MariaDB credentials
     {{- if .Values.existingSecret -}}
         {{- printf "%s" .Values.existingSecret -}}
     {{- else -}}
-        {{- printf "%s" (include "database.fullname" .) -}}
+        {{- printf "%s-secret" (include "database.fullname" .) -}}
     {{- end -}}
 {{- end -}}
 
