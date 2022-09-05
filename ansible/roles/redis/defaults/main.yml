@@ -1,0 +1,13 @@
+---
+# defaults file for redis
+chart_name: "redis-sentinel"
+chart_src: "../../../helmCharts"
+chart_dest: "/tmp/charts"
+
+chart_owner: "{{ ansible_user_id }}"
+chart_group: "{{ ansible_user_id }}"
+chart_mode: 0644
+
+
+deploy_name: "cache"
+release_namespace: "default"
