@@ -15,20 +15,20 @@ pipeline {
         }
     
         // Building Docker images
-        stage('Building image') {
-           steps {
-               sh "img build -t ${registry}:${BUILD_TAG} ./application"
-           }
-        }
+        // stage('Building image') {
+        //    steps {
+        //        sh "img build -t ${registry}:${BUILD_TAG} ./application"
+        //    }
+        // }
 
-        // Pushing image
-        stage('Pushing image') {
-           steps {
-               withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                  sh 'img login --username $USERNAME --password $PASSWORD'
-                }
-                  sh "img push ${registry}:${BUILD_TAG}"
-           }
-        }
+        // // Pushing image
+        // stage('Pushing image') {
+        //    steps {
+        //        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        //           sh 'img login --username $USERNAME --password $PASSWORD'
+        //         }
+        //           sh "img push ${registry}:${BUILD_TAG}"
+        //    }
+        // }
   }
 }
