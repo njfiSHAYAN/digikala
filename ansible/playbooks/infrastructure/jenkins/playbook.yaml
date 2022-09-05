@@ -1,6 +1,0 @@
-- name: install jenkins chart
-  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
-  tasks:
-    - import_role:
-        name: "jenkins-helmChart"
-
