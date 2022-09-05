@@ -1,0 +1,5 @@
+---
+# defaults file for common
+
+helm_bin_path: /bin/helm
+
