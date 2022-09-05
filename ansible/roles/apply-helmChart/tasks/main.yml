@@ -14,6 +14,7 @@
     owner: "{{ chart_owner }}"
     group: "{{ chart_group }}"
     mode: " {{ chart_mode }}"
+  when: "onlyHelm | bool == False"
 
 - name: copy values file
   copy:
@@ -22,7 +23,7 @@
     owner: "{{ values_owner }}"
     group: "{{ values_group }}"
     mode: " {{ values_mode }}"
-  when: "values_enabled is true"
+  when: "values_enabled is true and onlyHelm | bool == False"
 
 - name: install charts with values file. skip if not available
   kubernetes.core.helm:
@@ -35,7 +36,7 @@
       - "{{ values_dest }}/{{ values_file_name }}"
     values: "{{ values }}"
     wait: "{{ wait }}"
-  when: "values_enabled is true"
+  when: "values_enabled is true and onlyHelm | bool == False"
 
 - name: install charts without values file. helm is already installed if values file is provided
   kubernetes.core.helm:
@@ -46,4 +47,4 @@
     create_namespace: yes
     values: "{{ values }}"
     wait: "{{ wait }}"
-  when: "values_enabled is false"
+  when: "values_enabled is false and onlyHelm | bool == False"

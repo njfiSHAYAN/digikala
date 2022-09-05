@@ -27,3 +27,6 @@ release_name: "mon"
 release_namespace: "monitoring"
 
 kubeconfig: "~/admin.conf"
+
+# if true only installs helm package
+onlyHelm: false
