@@ -209,6 +209,16 @@ data:
 
       {{- if .Values.prometheus.app.enabled }}
       - job_name: 'application'
-        static_configs:
-          - targets: [{{ .Values.prometheus.app.serviceName }}]
+        kubernetes_sd_configs:
+        - role: endpoints
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            action: keep
+            regex: "{{ .Values.prometheus.app.serviceName }}"
+          - source_labels: [__meta_kubernetes_endpoints_name, __meta_kubernetes_endpoint_address_target_name]
+            action: replace
+            regex: (.+);(.+)
+            target_label: instance
+            replacement: "application:: $2"
       {{- end }}
