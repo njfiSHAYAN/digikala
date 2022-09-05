@@ -1,10 +1,16 @@
 - name: deploy application blue green
-  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  hosts: master2
   tasks:
+    - name: install helm if it does not exist
+      import_role:
+        name: "apply-helmChart"
+      vars:
+        onlyHelm: true
+
     - name: check if previous versions are deployed as blue
       kubernetes.core.helm_info:
         name: "{{ app_release_name }}-blue"
-        release_namespace: default
+        release_namespace: "{{ release_namespace }}"
       register: results
     
     - name: set current version to blue if it is the case
@@ -16,11 +22,11 @@
     - name: check if previous versions are deployed as green
       kubernetes.core.helm_info:
         name: "{{ app_release_name }}-green"
-        release_namespace: default
+        release_namespace: "{{ release_namespace }}"
       register: results
       when: "current is not defined"
     
-    - name: set current version to blue if it is the case
+    - name: set current version to green if it is the case
       set_fact:
         current: green
         next: blue
@@ -37,6 +43,8 @@
 
             wait: false
 
+            onlyHelm: false
+
             values:
               ingress:
                 enabled: false
@@ -45,7 +53,7 @@
           kubernetes.core.k8s:
             state: present
             template: ingress.yaml
-            namespace: default
+            namespace: "{{ release_namespace }}"
 
 
     - name: terminate ansible
@@ -59,6 +67,8 @@
         release_name: "{{ app_release_name }}-{{ next }}"
 
         wait: true
+
+        onlyHelm: fales
 
         values:
           ingress:
@@ -79,8 +89,7 @@
 
       register: results
       vars:
-        next: blue
-        service: "digiapp-{{ next }}"
+        service: "{{ app_release_name }}-{{ next }}"
         local_port: 24781
         service_port: 80
     
@@ -91,8 +100,8 @@
           kubernetes.core.helm:
             state: absent
             name: "{{ app_release_name }}-{{ next }}"
-            release_namespace: "default"
-            kubeconfig: ~/admin.conf
+            release_namespace: "{{ release_namespace }}"
+            kubeconfig: "{{ kubeconfig }}"
 
         - name: terminate ansible
           meta: end_play
@@ -100,7 +109,7 @@
     - name: route traffic to new service if everything is OK
       kubernetes.core.k8s_json_patch:
         kind: Ingress
-        namespace: default
+        namespace: "{{ release_namespace }}"
         name: digiapp-ingress
         patch:
           - op: replace
@@ -111,6 +120,6 @@
       kubernetes.core.helm:
         state: absent
         name: "{{ app_release_name }}-{{ current }}"
-        release_namespace: "default"
-        kubeconfig: ~/admin.conf
+        release_namespace: "{{ release_namespace }}"
+        kubeconfig: "{{ kubeconfig }}"
             
