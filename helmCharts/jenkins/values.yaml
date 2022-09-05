@@ -43,6 +43,10 @@ service:
   type: ClusterIP
   port: 8080
 
+nodePort:
+  name: jenkinsnodeport
+  type: NodePort
+
 ingress:
   enabled: true
   annotations: {}
