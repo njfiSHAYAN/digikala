@@ -1,16 +1,32 @@
 pipeline {
     agent any
     environment {
+        commit = "{env.GIT_PREVIOUS_COMMIT}"
         registry = "shayannjf/digiapp"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
+        branchName = 'jenkins'
     }
     stages {
         // connect to git
         stage('Cloning Git') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/jenkins']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: repositoryCredential, url: repositoryUrl]]])       
+                checkout([$class: 'GitSCM',
+                          branches: [[name: branchName]],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[credentialsId: repositoryCredential, url: repositoryUrl]]])
+            }
+        }
+        
+        stage ('test commit') {
+            steps {
+                script {
+                    
+                    echo env.GIT_PREVIOUS_COMMIT
+                }
             }
         }
     
@@ -30,5 +46,5 @@ pipeline {
         //           sh "img push ${registry}:${BUILD_TAG}"
         //    }
         // }
-  }
+}
 }
