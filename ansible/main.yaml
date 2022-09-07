@@ -26,9 +26,11 @@
     release_namespace: "default"
 
     kubeconfig: ~/admin.conf
+
 - name: Install DB & Redis helm-charts. 
   import_playbook: "playbooks/db-redis/main.yaml"
   
+
 - name: install application
   import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
   vars:
