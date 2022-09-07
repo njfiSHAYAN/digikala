@@ -1,0 +1,25 @@
+- name: configure controller helm
+  hosts: master1
+  tasks:
+    - name: Add stable helm repo
+      kubernetes.core.helm_repository:
+        name: stable
+        repo_url:  https://kubernetes.github.io/ingress-nginx
+
+    - name: install ingress controller
+      kubernetes.core.helm:
+        name: ingress-nginx
+        chart_ref: stable/ingress-nginx
+        release_namespace: ingress-nginx
+        create_namespace: true
+        kubeconfig: ~/admin.conf
+        values:
+          controller:
+            ingressClassResource:
+              default: true
+            service:
+              type: NodePort
+              nodePorts:
+                http: 31548
+                https: 31679
+
