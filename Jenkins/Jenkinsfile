@@ -41,12 +41,7 @@ pipeline {
                     def appChanged = ''
                     def deployChanged = '' 
                     changes = sh (
-                        script: "git diff ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}  --name-only",
-                        returnStdout: true
-                    ).trim('\n')
-                    echo changes
-                    changes = sh (
-                        script: "./Jenkins/scripts/formatChanges.sh ${changes}",
+                        script: "./Jenkins/scripts/changes.sh ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}",
                         returnStdout: true
                     )
                     echo changes
