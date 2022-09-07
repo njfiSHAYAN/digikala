@@ -18,7 +18,7 @@
         state: present
         
 - name: install helm
-  become: yes
+  become: true
   ansible.builtin.apt:
     update_cache: yes
     name: helm

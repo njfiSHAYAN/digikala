@@ -6,9 +6,9 @@
         kubeconfig: ~/admin.conf
       register: api_status
 
-# - name: create cluster
-#   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
-#   when: "hostvars['master2']['api_status']['failed'] is true"
+- name: create cluster
+  import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
+  when: "hostvars['master2']['api_status']['failed'] is true"
 
 - name: install monitoring
   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
@@ -29,6 +29,7 @@
 
 - name: Install DB & Redis helm-charts. 
   import_playbook: "playbooks/db-redis/main.yaml"
+  
 
 - name: install application
   import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
@@ -47,8 +48,4 @@
     values_mode: 0644
     release_namespace: "default"
     kubeconfig: ~/admin.conf
-
-
-
-
 
