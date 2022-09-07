@@ -44,6 +44,7 @@ pipeline {
                         script: "git diff ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}  --name-only",
                         returnStdout: true
                     )
+                    echo changes
                     changes = sh (
                         script: "./Jenkins/scripts/formatChanges.sh ${changes}",
                         returnStdout: true

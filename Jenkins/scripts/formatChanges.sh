@@ -1,3 +1,3 @@
 changes=$1
-changes=$(echo $changes | xargs awk -F "/" '{print $1}' | tr '\n' '-')
+changes=$(echo $changes | tr '\n' '-')
 echo $changes
