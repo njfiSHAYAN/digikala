@@ -55,9 +55,7 @@ pipeline {
         stage('Building image') {
             steps {
                 script {
-                    condition = appChanged
-                    echo condition
-                    if (condition.trim().equals('1')) {
+                    if (appChanged.trim().equals('1')) {
                         echo "yes"
                         //sh "img build -t ${registry}:${BUILD_TAG} ./application"
                     }
