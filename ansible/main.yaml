@@ -28,7 +28,7 @@
     kubeconfig: ~/admin.conf
 
 - name: install application
-  import_playbook: "playbooks/application/playbook.yaml"
+  import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
   vars:
     chart_name: "digiapp"
     chart_src: "../../../helmCharts"
