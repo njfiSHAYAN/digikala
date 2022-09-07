@@ -12,6 +12,13 @@ RUN curl -fSL "https://github.com/genuinetools/img/releases/download/v0.5.11/img
 
 RUN chmod a+x "/usr/local/bin/img"
 
+#### Install python
+
+RUN apt update && apt install -y python3.9 python3-pip
+
+
+
+
 
 
 
