@@ -31,7 +31,7 @@ pipeline {
         }
     
         // Building Docker images
-        // stage('Building image') {
+        // stage('Building imagee') {
         //    steps {
         //        sh "img build -t ${registry}:${BUILD_TAG} ./application"
         //    }
