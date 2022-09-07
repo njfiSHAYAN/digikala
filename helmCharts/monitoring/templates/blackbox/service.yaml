@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.blackbox.service.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    {{- include "monitoring.blackbox.selectorLabels" . | nindent 4}}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.blackbox.service.port }}
+      targetPort: {{ .Values.blackbox.image.port }}

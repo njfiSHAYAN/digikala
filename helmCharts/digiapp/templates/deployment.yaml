@@ -1,13 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "digiapp.fullname" . }}
+  name: {{ include "digiapp.name" . }}
   labels:
     {{- include "digiapp.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "digiapp.selectorLabels" . | nindent 6 }}
@@ -24,7 +22,6 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "digiapp.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -49,21 +46,21 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: CONFIG_ADDR
-              value: {{ template "digiapp.workingdir" }}/{{ .Values.secretConfig.configFilePath }}/{{ .Values.secretConfig.config_file_name }}
+              value: {{ .Values.secretConfig.workingDir }}/{{ .Values.secretConfig.configFilePath }}/{{ .Values.secretConfig.config_file_name }}
           {{- range $key, $val := .Values.image.environments }}
             - name: {{ $key }}
               value: {{ $val | quote }}
           {{- end }}
           {{- if .Values.secretConfig.enabled }}
           volumeMounts:
-            - name: {{ .Values.secretConfig.volume_name }}
-              mountPath: {{ template "digiapp.workingdir" }}/{{ .Values.secretConfig.configFilePath }}
+            - name: vol-secret
+              mountPath: {{ .Values.secretConfig.workingDir }}/{{ .Values.secretConfig.configFilePath }}
           {{- end }}
       {{- if .Values.secretConfig.enabled }}
       volumes:
-        - name: {{ .Values.secretConfig.volume_name }}
+        - name: vol-secret
           secret:
-            secretName: {{ .Values.secretConfig.secret_name }}
+            secretName: {{ include "digiapp.secretName" . }}
       {{- end}}
       {{- with .Values.nodeSelector }}
       nodeSelector:

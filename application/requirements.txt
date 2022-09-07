@@ -4,3 +4,5 @@ uvicorn==0.18.2
 PyJWT==2.4.0
 python-multipart==0.0.5
 redis==4.3.4
+prometheus-fastapi-instrumentator==5.9.1
+PyMySQL==1.0.2
