@@ -60,7 +60,6 @@ rootUser:
   user: root
   password: ""
 
-
 db:
   user: ""
   password: ""
