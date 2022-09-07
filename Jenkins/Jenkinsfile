@@ -48,7 +48,12 @@ pipeline {
                         script: "./Jenkins/scripts/appChanged.sh ${changes}",
                         returnStdout: true
                     ) 
-                    echo "${appChanged}"              
+                    deployChanged = sh (
+                        script: "./Jenkins/scripts/deployChanged.sh ${changes}",
+                        returnStdout: true
+                    )
+                    echo appChanged
+                    echo deployChanged         
                 }
             }
         }
