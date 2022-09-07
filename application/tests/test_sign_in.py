@@ -1,6 +1,5 @@
 import unittest
 from unittest import mock
-# for delete
 
 from fastapi.exceptions import HTTPException
 
