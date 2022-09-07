@@ -9,6 +9,13 @@
         release_name: "galera"
         release_namespace: "default"
         chart_src: "{{ src }}"
+        values:
+            db:
+              user: "{{ db_user }}"
+              password: "{{ db_pass }}"
+              name: "{{ db_name }}"
+            service:
+                port: "{{ db_port }}"
 
     - role: "apply-helmChart"
       vars: 

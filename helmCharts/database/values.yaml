@@ -57,30 +57,15 @@ containerPorts:
   sst: 4444
 
 rootUser:
-  ## @param rootUser.user Username for the admin user.
-  ##
   user: root
-  password: ""
-  ## @param rootUser.forcePassword Option to force users to specify a password. That is required for 'helm upgrade' to work properly.
-  ## If it is not force, a random password will be generated.
-  ##
-  forcePassword: false
+  password: "!Q@W#E$R5t6y"
 
 
 db:
-  ## @param db.user Username of new user to create
   user: ""
-  ## @param db.password Password for the new user. Ignored if existing secret is provided.
-  ##
   password: ""
-  ## @param db.name Name for new database to create
-  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb-galera#creating-a-database-on-first-run
-  ##
-  name: my_database
-  ## @param db.forcePassword Option to force users to specify a password. That is required for 'helm upgrade' to work properly.
-  ## If it is not force, a random password will be generated.
-  ##
-  allowEmptyPassword: "1"
+  name: ""
+  allowEmptyPassword: false
 
 
 livenessProbe:
