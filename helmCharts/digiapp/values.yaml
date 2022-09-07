@@ -1,15 +1,59 @@
+# secretConfig defines config.json file
+# config.json file containes information about db, redis and some configs used in app
+secretConfig:
+  enabled: true
+  data: 
+
+    # db config
+    db:
+      engine: sqlite
+      sql_alchemy_url: sqlite:///./sql_app.db
+      create_engine_args: 
+        connect_args: 
+          check_same_thread: false
+
+    # length of salt used in hashing of user passwords
+    password_salt_length: 4
+    
+    # user tokens config
+    users:
+      jwt_secret: STRONG_SECRET
+      token_duration_seconds: 86400
+    
+    # redis config
+    redis:
+      host: myredis
+      port: 6379
+      db: 0
+      password: redis
+
+  workingDir: "/app"
+
+
+  # configFilePath is the path to app config dir relative to workdir in container
+  # config file will be read from this directory
+  configFilePath: application/config/
+
+  # config_file_name is the name of the file inside configFilePath where config data is stored
+  config_file_name: config.json
+
+
+
+service:
+  type: ClusterIP
+  port: 80
+
+
 replicaCount: 1
 
 image:
-  repository: sobhansaf79/digiapp
+  repository: docker.io/sobhansaf79/digiapp
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
   environments: {}
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
 
 
 podAnnotations: {}
@@ -25,79 +69,12 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-service:
-  type: ClusterIP
-  port: 80
 
-ingress:
-  enabled: true
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: digiapp.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 resources: {}
-
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
-
-# secretConfig defines config.json file
-# config.json file containes information about db, redis and some configs used in app
-secretConfig:
-  enabled: true
-  data: 
-
-    # db config
-    db:
-      engine: sqlite
-      sql_url: sqlite:///./sql_app.db
-      create_engine_args: 
-        connect_args: 
-          check_same_thread: false
-
-    # length of salt used in hashing of user passwords
-    password_salt_length: 4
-    
-    # user tokens config
-    users:
-      jwt_secret: STRONG_SECRET
-      token_duration_seconds: 86400
-    
-    # redis config
-    redis:
-      host: redis
-      port: 6379
-      db: 0
-      password: redis
-
-  secret_name: app-secret
-  secret_type: Opaque
-
-  # volume_name is the name of the volume which is mounted to the pod as config secret
-  volume_name: vol
-
-  # configFilePath is the path to app config dir relative to workdir in container
-  # config file will be read from this directory
-  configFilePath: application/config/
-
-  # config_file_name is the name of the file inside configFilePath where config data is stored
-  config_file_name: config.json
-
-
-redis:
-  fullnameOverride: theredis
-  auth:
-    password: redis

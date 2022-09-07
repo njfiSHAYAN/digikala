@@ -33,5 +33,6 @@ def get_redis():
         port=redis_conf.get("port", 6379),
         db=redis_conf.get("db", 0),
         password=redis_conf.get("password", "redis"),
+        username=redis_conf.get("username", "default"),
     )
     return r

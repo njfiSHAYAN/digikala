@@ -5,3 +5,5 @@ sql_app.db
 Chart.lock
 digiapp/charts/*.tgz
 digi
+tmp
+TODO

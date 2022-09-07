@@ -1,0 +1,25 @@
+secretConfig:
+  data: 
+
+    # db config
+    db:
+      engine: sqlite
+      sql_url: sqlite:///./sql_app.db
+      create_engine_args: 
+        connect_args: 
+          check_same_thread: false
+
+    # length of salt used in hashing of user passwords
+    password_salt_length: 4
+    
+    # user tokens config
+    users:
+      jwt_secret: STRONG_SECRET
+      token_duration_seconds: 86400
+    
+    # redis config
+    redis:
+      host: redis
+      port: 6379
+      db: 0
+      password: redis
