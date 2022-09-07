@@ -8,13 +8,13 @@ data:
   ping_readiness_local.sh: |-
     #!/bin/bash
     {{- if and .Values.auth.enabled }}
-    export REDISCLI_AUTH="{{ .Values.auth.password }}"
+    export REDISCLI_AUTH="{{ .Values.auth.replication.password }}"
     {{- end }}
     response=$(
       timeout -s 3 $1 \
       redis-cli \
         {{- if .Values.auth.enabled }}
-        --user {{ .Values.auth.authUser }} \
+        --user {{ .Values.auth.replication.user }} \
         {{- end }}
         -h localhost \
         -p {{ .Values.redis.containerPorts.redis }} \
@@ -31,13 +31,13 @@ data:
   ping_liveness_local.sh: |-
     #!/bin/bash
     {{- if and .Values.auth.enabled  }}
-    export REDISCLI_AUTH="{{ .Values.auth.password }}"
+    export REDISCLI_AUTH="{{ .Values.auth.replication.password }}"
     {{- end }}
     response=$(
       timeout -s 3 $1 \
       redis-cli \
         {{- if .Values.auth.enabled }}
-        --user {{ .Values.auth.authUser }} \
+        --user {{ .Values.auth.replication.user }} \
         {{- end }}
         -h localhost \
         -p {{ .Values.redis.containerPorts.redis }} \

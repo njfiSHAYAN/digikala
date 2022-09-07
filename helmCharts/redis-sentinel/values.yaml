@@ -60,7 +60,7 @@ redis:
     accessModes:
       - ReadWriteOnce
 
-    size: 8Gi
+    size: 1Gi
     existingClaim: ""
 
 sentinel:
@@ -120,8 +120,7 @@ auth:
   sentinel:
     user: default
     password: "12345"
-  authUser: replication
-  password: "1234"
+
   acl: 
     # user "default" is the default user ( act as admin ) and user "replication" is used by the nodes for the replication.
     # password can be sha-256 or plain text see: https://redis.io/docs/manual/security/acl/
