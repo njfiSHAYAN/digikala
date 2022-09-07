@@ -20,6 +20,6 @@
             service:
               type: NodePort
               nodePorts:
-                http: 31548
-                https: 31679
+                http: "{{ http_node_port }}"
+                https: "{{ https_node_port }}"
 
