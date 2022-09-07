@@ -2,24 +2,43 @@
   hosts: "{{ (groups['masters'] | shuffle)[0] }}"
   vars:
     src: "../../../../helmCharts"
+    redis_sentinel_user: 'sentinel'
+    redis_sentinel_pass: 'W@Q1q2w3e4r' # don't use # symbol in password
+    redis_replication_user: 'replication'
+    redis_replication_pass: 'SHm7DwQGwN'
   roles:
     - role: "apply-helmChart"
       vars: 
         chart_name: "database"
-        release_name: "galera"
-        release_namespace: "default"
+        release_name: "{{ db_release_name }}"
+        release_namespace: "{{ db_release_namespace }}"
         chart_src: "{{ src }}"
+        wait: true
         values:
-            db:
-              user: "{{ db_user }}"
-              password: "{{ db_pass }}"
-              name: "{{ db_name }}"
-            service:
-                port: "{{ db_port }}"
+          db:
+            user: "{{ db_user }}"
+            password: "{{ db_pass }}"
+            name: "{{ db_name }}"
+          service:
+              port: "{{ db_port }}"
 
     - role: "apply-helmChart"
       vars: 
         chart_name: "redis-sentinel"
-        release_name: "cache"
-        release_namespace: "default"
+        release_name: "{{ redis_release_name }}"
+        release_namespace: "{{ redis_release_namespace }}"
         chart_src: "{{ src }}"
+        wait: true
+        values:
+          auth:
+            replication:
+              user: "{{ redis_replication_user }}"
+              password: "{{ redis_replication_pass }}"
+            sentinel:
+              user: "{{ redis_sentinel_user }}"
+              password: "{{ redis_sentinel_pass }}"
+            acl:
+              config: |
+                user {{ redis_sentinel_user }} on >{{ redis_sentinel_pass }} ~* &* +@all 
+                user {{ redis_replication_user }} on >{{ redis_replication_pass }} +psync +replconf +ping
+                user {{ redis_user }} on >{{ redis_pass }} ~* &* +@all -@dangerous
