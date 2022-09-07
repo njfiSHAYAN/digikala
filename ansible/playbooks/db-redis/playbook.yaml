@@ -1,9 +1,0 @@
-- name: Install and Config DB + redis
-  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
-  tasks:
-    - import_role:
-        name: "common"
-    - import_role:
-        name: "db"
-    - import_role:
-        name: "redis"

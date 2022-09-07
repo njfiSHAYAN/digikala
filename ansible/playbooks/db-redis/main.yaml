@@ -1,0 +1,20 @@
+- name: Install and Config DB + redis
+  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  vars:
+    src: "../../../../helmCharts"
+  roles:
+    - role: "common"
+      
+    - role: "apply-helmChart"
+      vars: 
+        chart_name: "database"
+        release_name: "galera"
+        release_namespace: "default"
+        chart_src: "{{ src }}"
+
+    - role: "apply-helmChart"
+      vars: 
+        chart_name: "redis-sentinel"
+        release_name: "cache"
+        release_namespace: "default"
+        chart_src: "{{ src }}"
