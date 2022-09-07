@@ -6,5 +6,3 @@ if [ ${#appChanged} -gt 0 ]; then
 else
     echo "0"
 fi
-
-# tamam
