@@ -9,3 +9,6 @@
 - name: create cluster
   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
   when: "hostvars['master2']['api_status']['failed'] is true"
+
+- name: Install DB & Redis helm-charts. 
+  import_playbook: "playbooks/db-redis/main.yaml"
