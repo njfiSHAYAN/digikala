@@ -15,6 +15,8 @@
         chart_src: "{{ src }}"
         wait: true
         values:
+          rootUser:
+            password: "{{ db_root_pass }}"
           db:
             user: "{{ db_user }}"
             password: "{{ db_pass }}"
@@ -42,3 +44,4 @@
                 user {{ redis_sentinel_user }} on >{{ redis_sentinel_pass }} ~* &* +@all 
                 user {{ redis_replication_user }} on >{{ redis_replication_pass }} +psync +replconf +ping
                 user {{ redis_user }} on >{{ redis_pass }} ~* &* +@all -@dangerous
+    - role: "add-users"

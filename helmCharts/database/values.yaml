@@ -58,7 +58,7 @@ containerPorts:
 
 rootUser:
   user: root
-  password: "!Q@W#E$R5t6y"
+  password: ""
 
 
 db:

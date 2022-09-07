@@ -6,7 +6,7 @@ redis_pass: "passs"
 redis_release_name: 'cache' 
 redis_release_namespace: 'default'
 
-db_root_pass: ""
+db_root_pass: "!Q@W#E$R5t6y"
 db_name: 'application' # database name to be created at startup
 db_user: 'app'
 db_pass: 'passs'
