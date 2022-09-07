@@ -53,12 +53,12 @@ pipeline {
         }
         //Building application images
         stage('Building image') {
-            stage {
+            steps {
                 script {
-                    echo appChanged
-                    // if () {
-                    //     sh "img build -t ${registry}:${BUILD_TAG} ./application"
-                    // }
+                    if (appChanged == '1') {
+                        echo 'yes'
+                        //sh "img build -t ${registry}:${BUILD_TAG} ./application"
+                    }
                 }
             }
         }
