@@ -10,7 +10,7 @@ pipeline {
     }
     stages {
         // connect to git
-        stage('Cloning Git') {
+        stage('Cloning Github') {
             steps {
                 checkout([$class: 'GitSCM',
                           branches: [[name: branchName]],
