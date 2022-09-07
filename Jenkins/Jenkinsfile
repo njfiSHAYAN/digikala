@@ -1,37 +1,60 @@
 pipeline {
     agent any
     environment {
-        commit = "{env.GIT_PREVIOUS_COMMIT}"
+        scm = ''
         registry = "shayannjf/digiapp"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
-        branchName = 'jenkins'
+        branchName = '*/jenkins'
     }
     stages {
         // connect to git
         stage('Cloning Git') {
             steps {
-                checkout([$class: 'GitSCM',
+                script {
+                     scm = checkout([$class: 'GitSCM',
                           branches: [[name: branchName]],
                           doGenerateSubmoduleConfigurations: false,
                           extensions: [],
                           submoduleCfg: [],
                           userRemoteConfigs: [[credentialsId: repositoryCredential, url: repositoryUrl]]])
+                }
+            }
+        }
+
+        stage('Unit test') {
+            steps {
+                sh 'pip install -r ./application/requirements.txt'
+                sh 'python3 -m unittest discover ./application/tests'
             }
         }
         
-        stage ('test commit') {
+        stage ('Evaluate changes') {
             steps {
                 script {
-                    
-                    echo env.GIT_PREVIOUS_COMMIT
+                    //previous_commit = scm.GIT_PREVIOUS_COMMIT
+                    //current_commit = scm.GIT_COMMIT
+                    // difference = sh "git diff ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}"
+                    // echo difference
+                    def changes = ''
+                    def appChanged = ''
+                    def deployChanged = '' 
+                    changes = sh (
+                        script: "git diff ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}  --name-only",
+                        returnStdout: true
+                    )
+                    appChanged = sh (
+                        script: "./Jenkins/scripts/appChanged.sh ${changes}",
+                        returnStdout: true
+                    ) 
+                    echo "${appChanged}"              
                 }
             }
         }
     
         // Building Docker images
-        // stage('Building imagee') {
+        // stage('Building image') {
         //    steps {
         //        sh "img build -t ${registry}:${BUILD_TAG} ./application"
         //    }
