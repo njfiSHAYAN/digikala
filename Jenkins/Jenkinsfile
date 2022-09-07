@@ -2,6 +2,8 @@ pipeline {
     agent any
     environment {
         scm = ''
+        appChanged = ''
+        deployChanged = '' 
         registry = "shayannjf/digiapp"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
@@ -9,7 +11,7 @@ pipeline {
         branchName = '*/jenkins'
     }
     stages {
-        // connect to git
+        // Connect to git
         stage('Cloning Git') {
             steps {
                 script {
@@ -22,29 +24,22 @@ pipeline {
                 }
             }
         }
-
+        // Test application
         stage('Unit test') {
             steps {
                 sh 'pip install -r ./application/requirements.txt'
                 sh 'python3 -m unittest discover ./application/tests'
             }
         }
-        
+        // Get repository changes
         stage ('Evaluate changes') {
             steps {
                 script {
-                    //previous_commit = scm.GIT_PREVIOUS_COMMIT
-                    //current_commit = scm.GIT_COMMIT
-                    // difference = sh "git diff ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}"
-                    // echo difference
                     def changes = ''
-                    def appChanged = ''
-                    def deployChanged = '' 
                     changes = sh (
                         script: "./Jenkins/scripts/changes.sh ${scm.GIT_PREVIOUS_COMMIT} ${scm.GIT_COMMIT}",
                         returnStdout: true
                     )
-                    echo changes
                     appChanged = sh (
                         script: "./Jenkins/scripts/appChanged.sh ${changes}",
                         returnStdout: true
@@ -52,21 +47,23 @@ pipeline {
                     deployChanged = sh (
                         script: "./Jenkins/scripts/deployChanged.sh ${changes}",
                         returnStdout: true
-                    )
-                    echo appChanged
-                    echo deployChanged         
+                    )       
                 }
             }
         }
-    
-        // Building Docker images
-        // stage('Building image') {
-        //    steps {
-        //        sh "img build -t ${registry}:${BUILD_TAG} ./application"
-        //    }
-        // }
+        //Building application images
+        stage('Building image') {
+            stage {
+                script {
+                    echo appChanged
+                    // if () {
+                    //     sh "img build -t ${registry}:${BUILD_TAG} ./application"
+                    // }
+                }
+            }
+        }
 
-        // // Pushing image
+        // Pushing application image
         // stage('Pushing image') {
         //    steps {
         //        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
