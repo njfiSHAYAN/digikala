@@ -56,21 +56,24 @@ pipeline {
             steps {
                 script {
                     if (appChanged.trim().equals('1')) {
-                        echo "yes"
-                        //sh "img build -t ${registry}:${BUILD_TAG} ./application"
+                        sh "img build -t ${registry}:${BUILD_TAG} ./application"
                     }
                 }
             }
         }
 
-        // Pushing application image
-        // stage('Pushing image') {
-        //    steps {
-        //        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        //           sh 'img login --username $USERNAME --password $PASSWORD'
-        //         }
-        //           sh "img push ${registry}:${BUILD_TAG}"
-        //    }
-        // }
-}
+        //Pushing application image
+        stage('Pushing image') {
+            steps {
+                script {
+                    if (appChanged.trim().equals('1')) {
+                        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                            sh 'img login --username $USERNAME --password $PASSWORD'
+                        }   
+                            sh "img push ${registry}:${BUILD_TAG}"
+                    }
+                }
+            }
+        }
+    }
 }
