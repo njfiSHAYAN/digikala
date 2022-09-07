@@ -6,7 +6,7 @@
 replicaCount: 1
 
 image:
-  repository: shayannjf/myjenkins
+  repository: shayannjf/lastjenkins
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: jcasc
@@ -97,7 +97,7 @@ volumes:
   - name: jenkins-vol
     hostPath:
       path: /var/jenkins_vol
-      type: Directory
+      type: DirectoryOrCreate
 
 username: admin
 password: password
