@@ -56,7 +56,7 @@ pipeline {
             steps {
                 script {
                     echo "${appChanged}"
-                    if (${appChanged} == '1') {
+                    if ("${appChanged}" == '1') {
                         echo 'yes'
                         //sh "img build -t ${registry}:${BUILD_TAG} ./application"
                     }
