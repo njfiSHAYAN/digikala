@@ -57,7 +57,7 @@ pipeline {
                 script {
                     condition = appChanged
                     echo condition
-                    if (condition.equals('1')) {
+                    if (condition.trim().equals('1')) {
                         echo "yes"
                         //sh "img build -t ${registry}:${BUILD_TAG} ./application"
                     }
