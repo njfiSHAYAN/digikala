@@ -3,8 +3,6 @@
   vars:
     src: "../../../../helmCharts"
   roles:
-    - role: "common"
-      
     - role: "apply-helmChart"
       vars: 
         chart_name: "database"
