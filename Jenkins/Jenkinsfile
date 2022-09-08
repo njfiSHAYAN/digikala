@@ -4,7 +4,8 @@ pipeline {
         scm = ''
         appChanged = ''
         deployChanged = '' 
-        registry = "shayannjf/digiapp"
+        appRegistry = "shayannjf/digiapp"
+        deployRegistry = "shayannjf/clusterDeploy"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
@@ -52,25 +53,47 @@ pipeline {
             }
         }
         //Building application images
-        stage('Building image') {
+        stage('Building app image') {
             steps {
                 script {
                     if (appChanged.trim().equals('1')) {
-                        sh "img build -t ${registry}:${BUILD_TAG} ./application"
+                        sh "img build -t ${appRegistry}:${BUILD_TAG} ./application"
                     }
                 }
             }
         }
-
         //Pushing application image
-        stage('Pushing image') {
+        stage('Pushing app image') {
             steps {
                 script {
                     if (appChanged.trim().equals('1')) {
                         withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                             sh 'img login --username $USERNAME --password $PASSWORD'
                         }   
-                            sh "img push ${registry}:${BUILD_TAG}"
+                            sh "img push ${appRegistry}:${BUILD_TAG}"
+                    }
+                }
+            }
+        }
+        //‌Building deployment image
+        stage('Building deploy image') {
+            steps {
+                script {
+                    if (deployChanged.trim().equals('1')) {
+                        sh "img build -t ${deployRegistry}:${BUILD_TAG} ./deployment"
+                    }
+                }
+            }
+        }
+        //Pushing deployment image
+        stage('Pushing deploy image') {
+            steps {
+                script {
+                    if (deployChanged.trim().equals('1')) {
+                        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                            sh 'img login --username $USERNAME --password $PASSWORD'
+                        }
+                            sh "img push ${deployRegistry}:${BUILD_TAG}"
                     }
                 }
             }
