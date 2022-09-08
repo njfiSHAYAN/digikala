@@ -5,7 +5,7 @@ pipeline {
         appChanged = ''
         deployChanged = '' 
         appRegistry = "shayannjf/digiapp"
-        deployRegistry = "shayannjf/clusterDeploy"
+        deployRegistry = "shayannjf/digideploy"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
