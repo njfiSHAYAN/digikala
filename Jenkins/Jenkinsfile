@@ -8,6 +8,7 @@ pipeline {
         deployRegistry = "shayannjf/digideploy"
         registryCredential = 'dockerhub_credential'
         repositoryCredential = 'digikala_repository_token'
+        digikalaServersCredential = 'Digikala_server_private_key'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
         branchName = '*/jenkins'
     }
@@ -94,6 +95,21 @@ pipeline {
                             sh 'img login --username $USERNAME --password $PASSWORD'
                         }
                             sh "img push ${deployRegistry}:${BUILD_TAG}"
+                    }
+                }
+            }
+        }
+        //Deploy
+        stage('Deployment') {
+            steps {
+                script{
+                    if (deployChanged.trim().equals('1')) {
+                        sshagent(credentials : [digikalaServersCredential]) {
+                            sh 'ssh -o StrictHostKeyChecking=no ubuntu@93.113.233.129 uptime'
+                            sh 'ssh -v ubuntu@93.113.233.129'
+                            sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:${BUILD_TAG}"
+                            //sh 'scp ./source/filename user@hostname.com:/remotehost/target'
+                        }
                     }
                 }
             }
