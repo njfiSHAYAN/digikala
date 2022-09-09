@@ -80,7 +80,7 @@ pipeline {
             steps {
                 script {
                     if (deployChanged.trim().equals('1')) {
-                        sh "img build -t ${deployRegistry}:${BUILD_TAG} ./deployment"
+                        sh "img build -t ${deployRegistry}:${BUILD_TAG} . -f deployment/Dockerfile"
                     }
                 }
             }
