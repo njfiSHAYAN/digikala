@@ -1,13 +1,10 @@
 secretConfig:
-  data: 
-
-    # db config
+  data:
     db:
-      engine: sqlite
-      sql_url: sqlite:///./sql_app.db
-      create_engine_args: 
-        connect_args: 
-          check_same_thread: false
+      engin: mysql
+      sql_alchemy_url: |-
+        mysql+pymysql://{{ db_user }}:{{ db_pass }}@{{ db_release_name }}-mysql-service:{{ db_port }}/{{ db_name }}
+      create_engine_args: null
 
     # length of salt used in hashing of user passwords
     password_salt_length: 4
@@ -17,9 +14,9 @@ secretConfig:
       jwt_secret: STRONG_SECRET
       token_duration_seconds: 86400
     
-    # redis config
+
     redis:
-      host: redis
+      host: "{{ redis_release_name }}-redis-sentinel-svc"
       port: 6379
-      db: 0
-      password: redis
+      username: "{{ redis_user }}"
+      password: "{{ redis_pass }}"

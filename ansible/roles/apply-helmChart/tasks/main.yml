@@ -17,7 +17,7 @@
   when: "onlyHelm | bool == False"
 
 - name: copy values file
-  copy:
+  template:
     src: "{{ values_src }}"
     dest: "{{ values_dest }}/{{ values_file_name }}"
     owner: "{{ values_owner }}"
