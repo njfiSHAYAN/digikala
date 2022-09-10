@@ -10,6 +10,9 @@
   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
   when: "hostvars['master2']['api_status']['failed'] is true"
 
+- name: create ingress controller
+  import_playbook: "playbooks/infrastructure/ingress-controller/playbook.yaml"
+
 - name: install monitoring
   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
   vars:
