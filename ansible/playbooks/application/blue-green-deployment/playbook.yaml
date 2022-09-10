@@ -61,18 +61,30 @@
       when: "current is not defined"
 
     - name: apply helm chart with out ingress in new environment (blue or green depending on old environment) and wait for resources
-      import_role:
-        name: "apply-helmChart"
-      vars:
-        release_name: "{{ app_release_name }}-{{ next }}"
+      block:
+        - name: install chart in new environment
+          import_role:
+            name: "apply-helmChart"
+          vars:
+            release_name: "{{ app_release_name }}-{{ next }}"
 
-        wait: true
+            wait: true
 
-        onlyHelm: fales
+            onlyHelm: fales
 
-        values:
-          ingress:
-            enabled: false
+            values:
+              ingress:
+                enabled: false
+      rescue: 
+        - name: delete new deployment due to timeout.
+          kubernetes.core.helm:
+            state: absent
+            name: "{{ app_release_name }}-{{ next }}"
+            release_namespace: "{{ release_namespace }}"
+            kubeconfig: "{{ kubeconfig }}"
+
+        - name: terminate ansible
+          meta: end_play
 
     - name: check if everything is ok
       become: false
