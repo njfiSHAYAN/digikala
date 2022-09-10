@@ -111,7 +111,7 @@ pipeline {
                         sh 'ssh -o StrictHostKeyChecking=no ubuntu@93.113.233.129 uptime'
                         sh 'ssh -v ubuntu@93.113.233.129'
                         sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:latest"
-                        sh "ssh ubuntu@93.113.233.129 sudo ctr run --rm -t docker.io/${deployRegistry}:latest cont1"
+                        sh "ssh ubuntu@93.113.233.129 sudo ctr run --rm docker.io/${deployRegistry}:latest cont1"
                     }
                 }
             }
