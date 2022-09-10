@@ -10,3 +10,5 @@ spec:
       nodePort: 32000
   selector:
     {{- include "jenkins.selectorLabels" . | nindent 4 }}
+
+
