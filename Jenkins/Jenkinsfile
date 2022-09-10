@@ -58,6 +58,7 @@ pipeline {
             steps {
                 script {
                     if (appChanged.trim().equals('1')) {
+                        sh "img build -t ${appRegistry}:latest ./application"
                         sh "img build -t ${appRegistry}:${BUILD_TAG} ./application"
                     }
                 }
@@ -70,7 +71,8 @@ pipeline {
                     if (appChanged.trim().equals('1')) {
                         withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                             sh 'img login --username $USERNAME --password $PASSWORD'
-                        }   
+                        }
+                            sh "img push ${appRegistry}:latest"
                             sh "img push ${appRegistry}:${BUILD_TAG}"
                     }
                 }
@@ -81,6 +83,7 @@ pipeline {
             steps {
                 script {
                     if (deployChanged.trim().equals('1')) {
+                        sh "img build -t ${deployRegistry}:latest . -f deployment/Dockerfile"
                         sh "img build -t ${deployRegistry}:${BUILD_TAG} . -f deployment/Dockerfile"
                     }
                 }
@@ -94,6 +97,7 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                             sh 'img login --username $USERNAME --password $PASSWORD'
                         }
+                            sh "img push ${deployRegistry}:latest"
                             sh "img push ${deployRegistry}:${BUILD_TAG}"
                     }
                 }
@@ -103,13 +107,10 @@ pipeline {
         stage('Deployment') {
             steps {
                 script{
-                    if (deployChanged.trim().equals('1')) {
-                        sshagent(credentials : [digikalaServersCredential]) {
-                            sh 'ssh -o StrictHostKeyChecking=no ubuntu@93.113.233.129 uptime'
-                            sh 'ssh -v ubuntu@93.113.233.129'
-                            sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:${BUILD_TAG}"
-                            //sh 'scp ./source/filename user@hostname.com:/remotehost/target'
-                        }
+                    sshagent(credentials : [digikalaServersCredential]) {
+                        sh 'ssh -o StrictHostKeyChecking=no ubuntu@93.113.233.129 uptime'
+                        sh 'ssh -v ubuntu@93.113.233.129'
+                        sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:latest"
                     }
                 }
             }
