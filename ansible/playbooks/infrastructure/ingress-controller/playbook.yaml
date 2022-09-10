@@ -15,11 +15,14 @@
         kubeconfig: ~/admin.conf
         values:
           controller:
+            kind: "DaemonSet"
             ingressClassResource:
               default: true
             service:
-              type: NodePort
-              nodePorts:
-                http: "{{ http_node_port }}"
-                https: "{{ https_node_port }}"
+              enabled: false
+            hostPort:
+              enabled: true
+              hostNetwork: true
+              ports:
+                http: 80
 
