@@ -18,4 +18,3 @@ app.include_router(qoutes.router, tags=["qoutes"])
 async def startup():
     Instrumentator().instrument(app).expose(app)
     
-#shayan
