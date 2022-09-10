@@ -1,6 +1,6 @@
 ---
 - name: test
-  hosts: master3
+  hosts: master2
 
   tasks:
   - name: print environment variable
