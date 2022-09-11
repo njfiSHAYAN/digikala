@@ -1,0 +1,22 @@
+secretConfig:
+  data:
+    db:
+      engin: mysql
+      sql_alchemy_url: |-
+        mysql+pymysql://{{ db_user }}:{{ db_pass }}@{{ db_release_name }}-mysql-service:{{ db_port }}/{{ db_name }}
+      create_engine_args: null
+
+    # length of salt used in hashing of user passwords
+    password_salt_length: 4
+    
+    # user tokens config
+    users:
+      jwt_secret: STRONG_SECRET
+      token_duration_seconds: 86400
+    
+
+    redis:
+      host: "{{ redis_release_name }}-redis-sentinel-svc"
+      port: 6379
+      username: "{{ redis_user }}"
+      password: "{{ redis_pass }}"

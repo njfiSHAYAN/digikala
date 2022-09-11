@@ -1,0 +1,36 @@
+- name: install and configure haproxy
+  hosts: master1
+  become: yes
+  tasks:
+    - name: install haproxy from apt
+      apt:
+        update_cache: yes
+        name: haproxy
+        state: present
+    
+    - name: copy cert file
+      copy:
+        src: "{{ ssl_pem_file_src }}"
+        dest: "{{ ssl_pem_file_dest }}"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: copy haproxy config file
+      template:
+        src: "{{ config_file_src }}"
+        dest: "{{ config_file_dest }}"
+
+    - name: start haproxy service
+      service:
+        name: haproxy
+        state: restarted
+
+  vars:
+    ssl_pem_file_dest: /etc/ssl/private/digi.pem
+    ssl_pem_file_src: digi.pem
+    config_file_src: haproxy.cfg
+    config_file_dest: /etc/haproxy/haproxy.cfg
+    servers: "{{ (groups['workers'] | map('extract', hostvars, ['ansible_host']) | 
+                join((':' ~ http_node_port ~ ' ' )) ~ ':' ~ http_node_port ) | split | 
+                map('split', ':') }}"
