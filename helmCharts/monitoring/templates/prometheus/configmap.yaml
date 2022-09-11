@@ -30,7 +30,7 @@ data:
       - scheme: http
         static_configs:
         - targets:
-          - "{{ .Values.alertManager.service.name }}.{{ .Values.namespace }}.svc:{{ .Values.alertManager.service.port }}"
+          - "{{ .Values.alertManager.service.name }}.{{ .Release.Namespace }}.svc:{{ .Values.alertManager.service.port }}"
       {{- with .Values.alertManager.configurations.webConfig.authentication }}
       {{- if .enabled }}
         basic_auth:
