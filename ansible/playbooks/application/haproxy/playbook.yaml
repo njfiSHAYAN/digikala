@@ -34,3 +34,5 @@
     servers: "{{ (groups['workers'] | map('extract', hostvars, ['ansible_host']) | 
                 join((':' ~ http_node_port ~ ' ' )) ~ ':' ~ http_node_port ) | split | 
                 map('split', ':') }}"
+    haproxy_stats_username: admin
+    haproxy_stats_password: password
