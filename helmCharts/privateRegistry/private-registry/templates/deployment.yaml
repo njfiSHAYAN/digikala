@@ -1,23 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "jenkins.fullname" . }}
+  name: {{ include "private-registry.fullname" . }}
   labels:
-    {{- include "jenkins.labels" . | nindent 4 }}
-  annotations:
-    container.apparmor.security.beta.kubernetes.io/img: unconfined
-    container.seccomp.security.alpha.kubernetes.io/img: unconfined
+    {{- include "private-registry.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "jenkins.selectorLabels" . | nindent 6 }}
+      {{- include "private-registry.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        {{- include "jenkins.selectorLabels" . | nindent 8 }}
+        {{- include "private-registry.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -30,34 +31,31 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/sh", "-c", "printenv CONFIG_FILE_CONTENT > /var/jenkins_home/casc.yaml"]
+                command: ["/bin/sh", "-c", "mkdir /auth && printenv PASSWORD_FILE > /auth/registry.password"]
           env:
-            - name: CONFIG_FILE_CONTENT
-              valueFrom:
-                configMapKeyRef:
-                  name: casc-config-file
-                  key: casc.yaml
-            - name: JAVA_OPTS
-              value: -Djenkins.install.runSetupWizard=false
-            - name: CASC_JENKINS_CONFIG
-              value: /var/jenkins_home/casc.yaml
-            - name: JENKINS_ADMIN_ID
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ .Release.Name }}-auth 
-            - name: JENKINS_ADMIN_PASSWORD
+            - name: PASSWORD_FILE
               valueFrom:
                 secretKeyRef:
                   key: password
-                  name: {{ .Release.Name }}-auth  
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+                  name: {{ .Release.Name }}-auth
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: /data
+            - name: REGISTRY_AUTH
+              value: htpasswd
+            - name: REGISTRY_AUTH_HTPASSWD_REALM
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ .Release.Name }}-auth
+            - name: REGISTRY_AUTH_HTPASSWD_PATH
+              value: /auth/registry.password 
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 5000
               protocol: TCP
           volumeMounts:
           {{- range .Values.volumeMounts }}         

@@ -1,4 +1,4 @@
-- name: install monitoring chart
+- name: install jenkins chart
   hosts: "{{ (groups['masters'] | shuffle)[0] }}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
