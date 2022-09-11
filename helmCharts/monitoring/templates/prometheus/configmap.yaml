@@ -7,29 +7,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.prometheus.configurations.rules.file_name }}: |-
-    groups:
-    - name: Instances
-      rules:
-      - alert: InstanceDown
-        expr: up == 0
-        for: 2m
-        labels:
-          severity: crititcal
-          domain: instances
-        annotations:
-          description: '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 2 minutes.'
-          summary: 'Instance {{ `{{ $labels.instance }}` }} down'
-    - name: BlackboxProbe
-      rules:
-      - alert: AppDown
-        expr: probe_success == 0
-        for: 2m
-        labels:
-          severity: critical
-          domain: application
-        annotations:
-          description:  '{{ `{{ $labels.instance }}` }} of job {{ `{{ $labels.job }}` }} has been down for more than 2 minutes.'
-          summary: 'Application {{ `{{ $labels.instance }}` }} down'
+    {{- .Files.Get "prometheusRules/rules.yaml" | nindent 4 }}
 
 
 
