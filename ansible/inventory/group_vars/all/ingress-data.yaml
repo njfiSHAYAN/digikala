@@ -1,2 +1,2 @@
-http_node_port: 31548
-https_node_port: 31679
+http_node_port: 80
+https_node_port: 443

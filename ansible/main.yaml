@@ -13,6 +13,9 @@
 - name: create ingress controller
   import_playbook: "playbooks/infrastructure/ingress-controller/playbook.yaml"
 
+- name: install load balancer
+  import_playbook: "playbooks/application/haproxy/playbook.yaml"
+
 - name: install monitoring
   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
   vars:

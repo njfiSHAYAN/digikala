@@ -1,5 +1,5 @@
 - name: install and configure haproxy
-  hosts: worker3
+  hosts: master1
   become: yes
   tasks:
     - name: install haproxy from apt
@@ -31,6 +31,6 @@
     ssl_pem_file_src: digi.pem
     config_file_src: haproxy.cfg
     config_file_dest: /etc/haproxy/haproxy.cfg
-    servers: "{{ (groups['all'] | map('extract', hostvars, ['ansible_host']) | 
+    servers: "{{ (groups['workers'] | map('extract', hostvars, ['ansible_host']) | 
                 join((':' ~ http_node_port ~ ' ' )) ~ ':' ~ http_node_port ) | split | 
                 map('split', ':') }}"
