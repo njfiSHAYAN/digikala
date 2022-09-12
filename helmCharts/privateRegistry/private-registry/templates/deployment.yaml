@@ -35,7 +35,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/sh", "-c", "mkdir /auth && printenv PASSWORD_FILE > /auth/registry.password"]
+                command: ["/bin/sh", "-c", "printenv PASSWORD_FILE > /var/registry/registry.password"]
           env:
             - name: PASSWORD_FILE
               valueFrom:
@@ -52,7 +52,7 @@ spec:
                   key: username
                   name: {{ .Release.Name }}-auth
             - name: REGISTRY_AUTH_HTPASSWD_PATH
-              value: /auth/registry.password 
+              value: /var/registry/registry.password 
           ports:
             - name: http
               containerPort: 5000

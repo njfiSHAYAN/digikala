@@ -4,9 +4,10 @@ pipeline {
         scm = ''
         appChanged = ''
         deployChanged = '' 
-        appRegistry = "shayannjf/digiapp"
-        deployRegistry = "shayannjf/digideploy"
+        appRegistry = "shayan-registry.passeto.ir/digiapp"
+        deployRegistry = "shayan-registry.passeto.ir/digideploy"
         registryCredential = 'dockerhub_credential'
+        insecureRegistryCredential = 'registry_credential'
         repositoryCredential = 'digikala_repository_token'
         digikalaServersCredential = 'Digikala_server_private_key'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
@@ -69,11 +70,11 @@ pipeline {
             steps {
                 script {
                     if (appChanged.trim().equals('1')) {
-                        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                            sh 'img login --username $USERNAME --password $PASSWORD'
+                        withCredentials([usernamePassword(credentialsId: insecureRegistryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                            sh 'img login --username $USERNAME --password $PASSWORD shayan-registry.passeto.ir'
                         }
-                            sh "img push ${appRegistry}:latest"
-                            sh "img push ${appRegistry}:${BUILD_TAG}"
+                            sh "img push --insecure-registry ${appRegistry}:latest"
+                            sh "img push --insecure-registry ${appRegistry}:${BUILD_TAG}"
                     }
                 }
             }
@@ -94,8 +95,8 @@ pipeline {
             steps {
                 script {
                     if (deployChanged.trim().equals('1')) {
-                        withCredentials([usernamePassword(credentialsId: registryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                            sh 'img login --username $USERNAME --password $PASSWORD'
+                        withCredentials([usernamePassword(credentialsId: insecureRegistryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                            sh 'img login --username $USERNAME --password $PASSWORD shayan-registry.passeto.ir'
                         }
                             sh "img push ${deployRegistry}:latest"
                             sh "img push ${deployRegistry}:${BUILD_TAG}"
@@ -110,8 +111,8 @@ pipeline {
                     sshagent(credentials : [digikalaServersCredential]) {
                         sh 'ssh -o StrictHostKeyChecking=no ubuntu@93.113.233.129 uptime'
                         sh 'ssh -v ubuntu@93.113.233.129'
-                        sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:latest"
-                        sh "ssh ubuntu@93.113.233.129 sudo ctr run --rm --net-host docker.io/${deployRegistry}:latest cont1"
+                        //sh "ssh ubuntu@93.113.233.129 sudo ctr images pull docker.io/${deployRegistry}:latest"
+                        //sh "ssh ubuntu@93.113.233.129 sudo ctr run --rm --net-host docker.io/${deployRegistry}:latest cont1"
                     }
                 }
             }
