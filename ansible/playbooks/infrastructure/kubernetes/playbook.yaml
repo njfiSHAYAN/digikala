@@ -129,7 +129,7 @@
 #########################        
 
 ################ start for kubectl init(master)
-- hosts: "ma-1"
+- hosts: "master1"
   remote_user: ubuntu
   become: true
   tasks:
@@ -189,7 +189,7 @@
 
 
 ############################### start for join node to master
-- hosts: "ma-2"
+- hosts: "master2"
   remote_user: ubuntu
   become: true
   tasks:
@@ -199,7 +199,7 @@
 ############################### end of join node to master
 
 ###############################   workers
-- hosts: wo-1
+- hosts: worker1
   remote_user: ubuntu
   become: yes
   gather_facts: true
