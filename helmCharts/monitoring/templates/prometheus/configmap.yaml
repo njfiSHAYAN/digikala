@@ -168,7 +168,6 @@ data:
       - job_name: 'blackbox'
         metrics_path: /probe
         params:
-          target: [{{ default .Values.prometheus.app.serviceName .Values.prometheus.blackboxTarget }}]
           module: ["http_2xx"]
 
         kubernetes_sd_configs:
@@ -177,7 +176,14 @@ data:
         relabel_configs:
           - source_labels: [__meta_kubernetes_service_name]
             action: keep
-            regex: {{ .Values.blackbox.service.name }}
+            regex: {{ default .Values.prometheus.app.serviceName .Values.prometheus.blackboxTarget }}.*
+          - source_labels: [__address__]
+            action: replace
+            regex: (.*)
+            target_label: __param_target
+            replacement: $1/docs 
+          - target_label: __address__
+            replacement: {{ .Values.blackbox.service.name }}:{{ .Values.blackbox.service.port }}
           - source_labels: [__param_target]
             action: replace
             target_label: instance
@@ -186,6 +192,7 @@ data:
 
 
       {{- if .Values.prometheus.app.enabled }}
+
       - job_name: 'application'
         kubernetes_sd_configs:
         - role: endpoints
@@ -193,7 +200,7 @@ data:
         relabel_configs:
           - source_labels: [__meta_kubernetes_endpoints_name]
             action: keep
-            regex: "{{ .Values.prometheus.app.serviceName }}"
+            regex: "{{ .Values.prometheus.app.serviceName }}.*"
           - source_labels: [__meta_kubernetes_endpoints_name, __meta_kubernetes_endpoint_address_target_name]
             action: replace
             regex: (.+);(.+)
