@@ -73,7 +73,7 @@ pipeline {
                         // withCredentials([usernamePassword(credentialsId: insecureRegistryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         //     sh 'img login --username $USERNAME --password $PASSWORD shayan-registry.passeto.ir'
                         // }
-                            sh 'img login -u shayan -p 123 shayan-registry.passeto.ir'
+                            //sh 'img login -u shayan -p 123 shayan-registry.passeto.ir'
                             sh "img push --insecure-registry ${appRegistry}:latest"
                             sh "img push --insecure-registry ${appRegistry}:${BUILD_TAG}"
                     }
@@ -96,9 +96,9 @@ pipeline {
             steps {
                 script {
                     if (deployChanged.trim().equals('1')) {
-                        withCredentials([usernamePassword(credentialsId: insecureRegistryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                            sh 'img login --username $USERNAME --password $PASSWORD shayan-registry.passeto.ir'
-                        }
+                        // withCredentials([usernamePassword(credentialsId: insecureRegistryCredential, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        //     sh 'img login --username $USERNAME --password $PASSWORD shayan-registry.passeto.ir'
+                        // }
                             sh "img push ${deployRegistry}:latest"
                             sh "img push ${deployRegistry}:${BUILD_TAG}"
                     }
