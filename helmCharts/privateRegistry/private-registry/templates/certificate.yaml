@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: private-tls
+  namespace: ci-cd
+spec:
+  secretName: private-tls-certificate
+  dnsNames:
+  - "jenkins-shayan.passeto.ir"
+  issuerRef:
+    name: letsencrypt-digi
