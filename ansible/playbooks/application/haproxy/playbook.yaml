@@ -1,5 +1,5 @@
 - name: install and configure haproxy
-  hosts: master1
+  hosts: master1,master2
   become: yes
   tasks:
     - name: install haproxy from apt
@@ -16,10 +16,20 @@
         group: root
         mode: '0600'
 
+    - name: get worker node ips
+      shell: |-
+        KUBECONFIG=/home/ubuntu/admin.conf kubectl get node -o wide  | grep worker | awk '{print $6}'
+      register: ip_nodes
+
+
     - name: copy haproxy config file
       template:
         src: "{{ config_file_src }}"
         dest: "{{ config_file_dest }}"
+      vars:
+        servers: "{{ ((ip_nodes.stdout_lines | join(':' ~ http_node_port ~ ' ')) ~ ':' ~ http_node_port) | 
+                      split | map('split', ':') }}"
+
 
     - name: start haproxy service
       service:
@@ -31,8 +41,5 @@
     ssl_pem_file_src: digi.pem
     config_file_src: haproxy.cfg
     config_file_dest: /etc/haproxy/haproxy.cfg
-    servers: "{{ (groups['workers'] | map('extract', hostvars, ['ansible_host']) | 
-                join((':' ~ http_node_port ~ ' ' )) ~ ':' ~ http_node_port ) | split | 
-                map('split', ':') }}"
     haproxy_stats_username: admin
     haproxy_stats_password: password
