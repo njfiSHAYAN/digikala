@@ -1,12 +1,6 @@
 - name: deploy application blue green
   hosts: master2
   tasks:
-    - name: install helm if it does not exist
-      import_role:
-        name: "apply-helmChart"
-      vars:
-        onlyHelm: true
-
     - name: check if previous versions are deployed as blue
       kubernetes.core.helm_info:
         name: "{{ app_release_name }}-blue"
