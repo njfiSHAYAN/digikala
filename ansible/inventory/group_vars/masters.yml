@@ -9,8 +9,8 @@ redis_release_namespace: 'default'
 
 db_root_pass: "!Q@W#E$R5t6y"
 db_name: 'application' # database name to be created at startup
-db_user: 'app'
-db_pass: 'passs'
+db_user: 'john'
+db_pass: 'qazwsx'
 db_port: '3306'
 db_release_name: 'galera'
 db_release_namespace: 'default'

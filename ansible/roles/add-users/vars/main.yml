@@ -5,8 +5,7 @@ grants:
     host: "%"
     password: qazwsx
     grants:
-      - "testdb5.*:SELECT,INSERT,UPDATE,DELETE,CREATE"
-      - "testdb4.*:SELECT,INSERT,UPDATE,DELETE"
+      - "application.*:ALL"
 
   - name: sara
     host: "localhost"
