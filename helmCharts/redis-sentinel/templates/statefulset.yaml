@@ -46,23 +46,34 @@ spec:
               set -ex
               [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
               ordinal=${BASH_REMATCH[1]}
-              if [ "$ordinal" == "0" ]; then
-                echo "This is master, add user only."
-                {{- if and .Values.auth.enabled }}
-                cp /tmp/acl/acl.conf /etc/redis/acl.conf
-                echo -e "\naclfile /etc/redis/acl.conf" >> /etc/redis/redis.conf
-                {{- end }}
+
+              {{- $fullName := include "redis-sentinel.fullname" . }}
+              {{- $releaseName := .Release.Namespace }}
+              {{- $clusterDomain := .Values.clusterDomain }}
+              SENTINEL_FQDN={{ printf "%s-service.%s.svc.%s" $fullName $releaseName $clusterDomain }}
+              MASTER_FDQN="{{ printf "%s-node-0.%s-headless.%s.svc.%s" $fullName $fullName $releaseName $clusterDomain }}"
+              
+              if [ "$(redis-cli -h $SENTINEL_FQDN -p {{ .Values.service.ports.sentinel }} ping)" != "PONG" ]; then
+                echo "master not found, defaulting to redis-0"
+                if [ "$ordinal" == "0" ]; then
+                  echo "This is master, add user only."
+                  {{- if .Values.auth.enabled }}
+                  cp /tmp/acl/acl.conf /etc/redis/acl.conf
+                  echo -e "\naclfile /etc/redis/acl.conf" >> /etc/redis/redis.conf
+                  {{- end }}
+                else
+                  echo -e "\nreplicaof $MASTER_FDQN {{ .Values.redis.containerPorts.redis }}" >> /etc/redis/redis.conf
+                  {{- if .Values.auth.enabled }}
+                  echo -e "\nmasteruser {{ .Values.auth.replication.user }}" >> /etc/redis/redis.conf
+                  echo -e "\nmasterauth $REDIS_MASTER_PASSWORD" >> /etc/redis/redis.conf
+                  {{- end }}
+              
+                fi
               else
-                {{- $fullName := include "redis-sentinel.fullname" . }}
-                {{- $releaseName := .Release.Namespace }}
-                {{- $clusterDomain := .Values.clusterDomain }}
-                echo "This is not master, Updating redis.conf. finding master FQDN"
-                MASTER_FDQN="{{ printf "%s-node-0.%s-headless.%s.svc.%s" $fullName $fullName $releaseName $clusterDomain }}"
-                echo -e "\nreplicaof $MASTER_FDQN {{ .Values.redis.containerPorts.redis }}" >> /etc/redis/redis.conf
-                {{- if and .Values.auth.enabled }}
-                echo -e "\nmasteruser {{ .Values.auth.replication.user }}" >> /etc/redis/redis.conf
-                echo -e "\nmasterauth $REDIS_MASTER_PASSWORD" >> /etc/redis/redis.conf
-                {{- end }}
+                echo "sentinel found, finding master"
+                MASTER="$(redis-cli -h $SENTINEL_FQDN -p {{ .Values.service.ports.sentinel }} sentinel get-master-addr-by-name {{ .Values.sentinel.masterSet }} | grep -E '([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})')"
+                echo "master found : $MASTER, updating redis.conf"
+                echo -e "\nreplicaof $MASTER {{ .Values.redis.containerPorts.redis }}" >> /etc/redis/redis.conf
               fi
         
           volumeMounts:
