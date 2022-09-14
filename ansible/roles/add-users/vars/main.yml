@@ -1,0 +1,16 @@
+---
+# vars file for add-users
+grants:
+  - name: john
+    host: "%"
+    password: qazwsx
+    grants:
+      - "application.*:ALL"
+
+  - name: sara
+    host: "localhost"
+    password: 2222
+    grants:
+      - "testdb5.*:SELECT,INSERT,UPDATE,DELETE,CREATE"
+      - "testdb3.*:SELECT,INSERT"
+      - "testdb2.*:SELECT"

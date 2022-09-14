@@ -26,7 +26,7 @@ data:
     sentinel down-after-milliseconds {{ .Values.sentinel.masterSet }} {{ .Values.sentinel.downAfterMilliseconds }}
     sentinel failover-timeout {{ .Values.sentinel.masterSet }} {{ .Values.sentinel.failoverTimeout }}
     sentinel parallel-syncs {{ .Values.sentinel.masterSet }} {{ .Values.sentinel.parallelSyncs }}
-    {{- if and .Values.auth.enabled .Values.auth.password }}
+    {{- if .Values.auth.enabled }}
     sentinel auth-pass {{ .Values.sentinel.masterSet }} {{ .Values.auth.sentinel.password }}
     sentinel auth-user {{ .Values.sentinel.masterSet }} {{ .Values.auth.sentinel.user }}
     {{- end }}

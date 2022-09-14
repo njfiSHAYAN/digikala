@@ -1,7 +1,4 @@
 ---
-- name: install helm
-  include_tasks: "install-helm.yaml"
-
 - name: copy chart to host
   copy:
     src: "{{ chart_src }}/{{ chart_name }}"
@@ -10,26 +7,28 @@
     group: "{{ chart_group }}"
     mode: " {{ chart_mode }}"
 
-- name: copy values file
-  copy:
-    src: "{{ values_src }}"
-    dest: "{{ values_dest }}/{{ values_file_name }}"
-    owner: "{{ values_owner }}"
-    group: "{{ values_group }}"
-    mode: " {{ values_mode }}"
+- name: install chart with values file
   when: "values_enabled is true"
+  block:
+    - name: copy values file
+      template:
+        src: "{{ values_src }}"
+        dest: "{{ values_dest }}/{{ values_file_name }}"
+        owner: "{{ values_owner }}"
+        group: "{{ values_group }}"
+        mode: " {{ values_mode }}"
 
-- name: install charts with values file. skip if not available
-  kubernetes.core.helm:
-    kubeconfig: "{{ kubeconfig }}"
-    name: "{{ release_name }}"
-    chart_ref: "{{ chart_dest }}/{{ chart_name }}"
-    release_namespace: "{{ release_namespace }}"
-    create_namespace: yes
-    atomic: yes
-    values_files:
-      - "{{ values_dest }}/{{ values_file_name }}"
-  when: "values_enabled is true"
+    - name: install charts with values file. skip if not available
+      kubernetes.core.helm:
+        kubeconfig: "{{ kubeconfig }}"
+        name: "{{ release_name }}"
+        chart_ref: "{{ chart_dest }}/{{ chart_name }}"
+        release_namespace: "{{ release_namespace }}"
+        create_namespace: yes
+        values_files:
+          - "{{ values_dest }}/{{ values_file_name }}"
+        values: "{{ values }}"
+        wait: "{{ wait }}"
 
 - name: install charts without values file. helm is already installed if values file is provided
   kubernetes.core.helm:
@@ -38,5 +37,6 @@
     chart_ref: "{{ chart_dest }}/{{ chart_name }}"
     release_namespace: "{{ release_namespace }}"
     create_namespace: yes
-    atomic: yes
+    values: "{{ values }}"
+    wait: "{{ wait }}"
   when: "values_enabled is false"

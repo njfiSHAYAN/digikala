@@ -1,0 +1,28 @@
+---
+# tasks file for add-users
+- name: make sure pymysql is present
+  pip:
+    name: pymysql
+    state: present
+
+- name: open port for mysql
+  shell: |
+    nohup kubectl port-forward "service/{{ db_release_name }}-mysql-service" 6033:{{ db_port }} --namespace {{ db_release_namespace }} >/dev/null 2>&1 &
+    
+- name: create database users
+  community.mysql.mysql_user:
+    login_host: "localhost"
+    login_user: 'root'
+    login_password: "{{ db_root_pass}}"
+    login_port: "6033"
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    host: "{{ item.host }}"
+    priv: "{{ item.grants | join('/') }}"
+    state: present
+  loop: "{{ grants }}"
+
+- name: close mysql port
+  become: true
+  shell: |
+    kill -9 $(ps -aux | grep "kubectl port-forward"  | head -n 1  | awk '{ print $2}')

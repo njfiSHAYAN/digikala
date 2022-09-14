@@ -1,0 +1,131 @@
+- name: deploy application blue green
+  hosts: master2
+  tasks:
+    - name: check if previous versions are deployed as blue
+      kubernetes.core.helm_info:
+        name: "{{ app_release_name }}-blue"
+        release_namespace: "{{ release_namespace }}"
+      register: results
+    
+    - name: set current version to blue if it is the case
+      set_fact:
+        current: blue
+        next: green
+      when: "'status' in results"
+
+    - name: check if previous versions are deployed as green
+      kubernetes.core.helm_info:
+        name: "{{ app_release_name }}-green"
+        release_namespace: "{{ release_namespace }}"
+      register: results
+      when: "current is not defined"
+    
+    - name: set current version to green if it is the case
+      set_fact:
+        current: green
+        next: blue
+      when: "current is not defined and 'status' in results"
+
+    - name: just deploy application if neither blue nor green exist in blue environment and create ingress
+      when: "current is not defined"
+      block:
+        - name: apply helm chart
+          import_role:
+            name: "apply-helmChart"
+          vars:
+            release_name: "{{ app_release_name }}-blue"
+
+            wait: false
+
+            onlyHelm: false
+
+            values:
+              ingress:
+                enabled: false
+
+        - name: create an ingress resource
+          kubernetes.core.k8s:
+            state: present
+            template: ingress.yaml
+            namespace: "{{ release_namespace }}"
+
+
+    - name: terminate ansible
+      meta: end_play
+      when: "current is not defined"
+
+    - name: apply helm chart with out ingress in new environment (blue or green depending on old environment) and wait for resources
+      block:
+        - name: install chart in new environment
+          import_role:
+            name: "apply-helmChart"
+          vars:
+            release_name: "{{ app_release_name }}-{{ next }}"
+
+            wait: true
+
+            onlyHelm: fales
+
+            values:
+              ingress:
+                enabled: false
+      rescue: 
+        - name: delete new deployment due to timeout.
+          kubernetes.core.helm:
+            state: absent
+            name: "{{ app_release_name }}-{{ next }}"
+            release_namespace: "{{ release_namespace }}"
+            kubeconfig: "{{ kubeconfig }}"
+
+        - name: terminate ansible
+          meta: end_play
+
+    - name: check if everything is ok
+      become: false
+      shell: |-
+        kubectl port-forward service/{{ service }} {{ local_port }}:{{ service_port }} >/dev/null 2>&1 &
+        sleep 1
+        status=$(curl -s -o /dev/null -w "%{http_code}" localhost:{{ local_port }})
+        echo $status
+        status=$(curl -s -o /dev/null -w "%{http_code}" localhost:{{ local_port }}/docs)
+        echo $status
+        pss=$(ps aux | grep "port-forward service/{{ service }}" | \
+          grep "{{ local_port }}:{{ service_port }}" | grep -v "grep" | tr -s ' ' | cut -f 2 -d ' ')
+        kill $pss
+
+      register: results
+      vars:
+        service: "{{ app_release_name }}-{{ next }}"
+        local_port: 24781
+        service_port: 80
+    
+    - name: delete new version if test results are not as expected
+      when: "results.stdout != '404\n200'"
+      block:
+        - name: uninstall new version
+          kubernetes.core.helm:
+            state: absent
+            name: "{{ app_release_name }}-{{ next }}"
+            release_namespace: "{{ release_namespace }}"
+            kubeconfig: "{{ kubeconfig }}"
+
+        - name: terminate ansible
+          meta: end_play
+
+    - name: route traffic to new service if everything is OK
+      kubernetes.core.k8s_json_patch:
+        kind: Ingress
+        namespace: "{{ release_namespace }}"
+        name: digiapp-ingress
+        patch:
+          - op: replace
+            path: /spec/rules/0/http/paths/0/backend/service/name
+            value: "{{ app_release_name }}-{{ next }}"
+
+    - name: delete old deployment
+      kubernetes.core.helm:
+        state: absent
+        name: "{{ app_release_name }}-{{ current }}"
+        release_namespace: "{{ release_namespace }}"
+        kubeconfig: "{{ kubeconfig }}"
+            

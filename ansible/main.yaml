@@ -1,5 +1,5 @@
 - name: check kube cluster is up
-  hosts: master2
+  hosts: master3
   tasks:
     - name: Get Cluster information
       kubernetes.core.k8s_cluster_info:
@@ -9,6 +9,15 @@
 - name: create cluster
   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
   when: "hostvars['master2']['api_status']['failed'] is true"
+
+- name: install helm
+  import_playbook: "playbooks/infrastructure/helm/playbook.yaml"
+
+- name: create ingress controller
+  import_playbook: "playbooks/infrastructure/ingress-controller/playbook.yaml"
+
+- name: install load balancer
+  import_playbook: "playbooks/application/haproxy/playbook.yaml"
 
 - name: install monitoring
   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
@@ -25,5 +34,27 @@
     release_name: "monitoring"
     release_namespace: "default"
 
+    kubeconfig: ~/admin.conf
+
+- name: Install DB & Redis helm-charts. 
+  import_playbook: "playbooks/db-redis/main.yaml"
+  
+
+- name: install application
+  import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
+  vars:
+    chart_name: "digiapp"
+    chart_src: "../../../helmCharts"
+    chart_dest: "/tmp/mycharts"
+    values_src: "myvalues.yaml"
+    values_dest: "/tmp/mycharts"
+    chart_owner: "{{ ansible_user_id }}"
+    chart_group: "{{ ansible_user_id }}"
+    chart_mode: 0644
+    values_enabled: true
+    values_owner: "{{ ansible_user_id }}"
+    values_group: "{{ ansible_user_id }}"
+    values_mode: 0644
+    release_namespace: "default"
     kubeconfig: ~/admin.conf
 

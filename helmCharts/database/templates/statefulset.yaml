@@ -104,8 +104,10 @@ spec:
                   name: {{ template "database.secretName" . }}
                   key: mariadb-password
             {{- end }}
+            {{- if .Values.db.name }}
             - name: MARIADB_DATABASE
               value: {{ .Values.db.name | quote }}
+            {{- end }}
 
           ports:
             - name: mysql

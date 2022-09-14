@@ -18,6 +18,10 @@ values_group: "{{ ansible_user_id }}"
 values_mode: 0644
 
 
+values: {}
+
+wait: false
+
 # release info to install
 release_name: "mon"
 release_namespace: "monitoring"
