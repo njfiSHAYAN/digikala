@@ -1,0 +1,25 @@
+- name: install private registry chart
+  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - import_role:
+        name: "../../../roles/apply-helmChart"
+      vars:
+        chart_name: "privateRegistry"
+        chart_src: "../../../../helmCharts"
+        chart_dest: "/tmp/charts"
+        chart_owner: "{{ ansible_user_id }}"
+        chart_group: "{{ ansible_user_id }}"
+        chart_mode: 0644
+
+
+        values_enabled: false
+
+
+        release_name: "docker-registry"
+        release_namespace: "ci-cd"
+
+        kubeconfig: "~/admin.conf"
+
+

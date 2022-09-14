@@ -1,0 +1,8 @@
+---
+- name: install jenkins
+  import_playbook: "playbooks/jenkins/playbook.yaml"
+
+- name: install private registry
+  import_playbook: "playbooks/privateRegistry/playbook.yaml"
+
+
