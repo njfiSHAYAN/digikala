@@ -14,3 +14,9 @@ db_pass: 'passs'
 db_port: '3306'
 db_release_name: 'galera'
 db_release_namespace: 'default'
+
+ceph_release_name: 'ceph'
+ceph_release_namespace: 'rook-ceph'
+
+ceph_cluster_release_name: 'ceph-cluster'
+ceph_cluster_release_namespace: 'rook-ceph'

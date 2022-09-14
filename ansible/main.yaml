@@ -6,46 +6,49 @@
         kubeconfig: ~/admin.conf
       register: api_status
 
-- name: create cluster
-  import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
-  when: "hostvars['master2']['api_status']['failed'] is true"
+# - name: create cluster
+#   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
+#   when: "hostvars['master2']['api_status']['failed'] is true"
 
-- name: install monitoring
-  import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
-  vars:
-    chart_name: monitoring
-    chart_src: "../../../../helmCharts"
-    chart_dest: "/tmp/charts"
-    chart_owner: "{{ ansible_user_id }}"
-    chart_group: "{{ ansible_user_id }}"
-    chart_mode: 0644
+- name: install rook oprator & ceph-clsuter
+  import_playbook: "playbooks/rook-ceph/main.yml"
 
-    values_enabled: false
+# - name: install monitoring
+#   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
+#   vars:
+#     chart_name: monitoring
+#     chart_src: "../../../../helmCharts"
+#     chart_dest: "/tmp/charts"
+#     chart_owner: "{{ ansible_user_id }}"
+#     chart_group: "{{ ansible_user_id }}"
+#     chart_mode: 0644
 
-    release_name: "monitoring"
-    release_namespace: "default"
+#     values_enabled: false
 
-    kubeconfig: ~/admin.conf
+#     release_name: "monitoring"
+#     release_namespace: "default"
 
-- name: Install DB & Redis helm-charts. 
-  import_playbook: "playbooks/db-redis/main.yaml"
+#     kubeconfig: ~/admin.conf
+
+# - name: Install DB & Redis helm-charts. 
+#   import_playbook: "playbooks/db-redis/main.yaml"
   
 
-- name: install application
-  import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
-  vars:
-    chart_name: "digiapp"
-    chart_src: "../../../helmCharts"
-    chart_dest: "/tmp/mycharts"
-    values_src: "myvalues.yaml"
-    values_dest: "/tmp/mycharts"
-    chart_owner: "{{ ansible_user_id }}"
-    chart_group: "{{ ansible_user_id }}"
-    chart_mode: 0644
-    values_enabled: true
-    values_owner: "{{ ansible_user_id }}"
-    values_group: "{{ ansible_user_id }}"
-    values_mode: 0644
-    release_namespace: "default"
-    kubeconfig: ~/admin.conf
+# - name: install application
+#   import_playbook: "playbooks/application/blue-green-deployment/playbook.yaml"
+#   vars:
+#     chart_name: "digiapp"
+#     chart_src: "../../../helmCharts"
+#     chart_dest: "/tmp/mycharts"
+#     values_src: "myvalues.yaml"
+#     values_dest: "/tmp/mycharts"
+#     chart_owner: "{{ ansible_user_id }}"
+#     chart_group: "{{ ansible_user_id }}"
+#     chart_mode: 0644
+#     values_enabled: true
+#     values_owner: "{{ ansible_user_id }}"
+#     values_group: "{{ ansible_user_id }}"
+#     values_mode: 0644
+#     release_namespace: "default"
+#     kubeconfig: ~/admin.conf
 

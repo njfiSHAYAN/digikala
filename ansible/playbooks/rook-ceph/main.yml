@@ -1,0 +1,29 @@
+- name: Install rook oprator
+  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  vars:
+    src: "../../../../helmCharts/ceph"
+
+  roles:
+    - role: "apply-helmChart"
+      vars: 
+        chart_name: "rook-ceph"
+        release_name: "{{ ceph_release_name }}"
+        release_namespace: "{{ ceph_release_namespace }}"
+        chart_src: "{{ src }}"
+        wait: true
+
+- name: Install ceph-cluster
+  hosts: "{{ (groups['masters'] | shuffle)[0] }}"
+  vars:
+    src: "../../../../helmCharts/ceph"
+
+  roles:
+    - role: "apply-helmChart"
+      vars: 
+        chart_name: "rook-ceph-cluster"
+        release_name: "{{ ceph_cluster_release_name }}"
+        release_namespace: "{{ ceph_cluster_release_namespace }}"
+        chart_src: "{{ src }}"
+        wait: true
+
+    
