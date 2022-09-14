@@ -20,4 +20,4 @@ data:
         enabled: true
     unclassified:
       location:
-        url: http://jenkins.com
+        url: http://jenkins-shayan.passeto.ir
