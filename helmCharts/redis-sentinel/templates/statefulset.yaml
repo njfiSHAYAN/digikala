@@ -248,7 +248,9 @@ spec:
         {{- end }} 
         {{- if not .Values.redis.persistence.enabled }}
         - name: redis-data
-          emptyDir: {}
+          hostPath:
+            path: /opt/data
+            type: Directory
         {{- end }}
   {{- if or .Values.redis.persistence.enabled .Values.sentinel.persistence.enabled }}
   volumeClaimTemplates:

@@ -206,7 +206,9 @@ spec:
             claimName: {{ .Values.persistence.existingClaim }}
         {{- else if not .Values.persistence.enabled }}
         - name: data
-          emptyDir: {}
+          hostPath:
+            path: /opt/data
+            type: Directory
   {{- else if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
