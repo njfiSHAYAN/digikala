@@ -12,6 +12,8 @@ RUN chmod 400 /root/.ssh/digi
 
 RUN ansible-galaxy collection install kubernetes.core
 
+RUN ansible-galaxy collection install cloud.common
+
 ENV ANSIBLE_CONFIG="/deployment/ansible/ansible.cfg"
 
 ENV ANSIBLE_HOST_KEY_CHECKING=False
