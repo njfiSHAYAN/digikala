@@ -21,11 +21,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-<<<<<<< HEAD
   name: {{ printf "%s-svc" (include "redis-sentinel.fullname" .) }}
-=======
-  name: {{ printf "%s-service" (include "redis-sentinel.fullname" .) }}
->>>>>>> 6f20f81 (fix for auto master change in snetinel)
   labels:
     {{- include "redis-sentinel.labels" . | nindent 4 }}
 spec:
