@@ -9,7 +9,7 @@ pipeline {
         repositoryCredential = 'digikala_repository_token'
         digikalaServersCredential = 'Digikala_server_private_key'
         repositoryUrl = 'https://github.com/njfiSHAYAN/digikala.git'
-        branchName = '*/jenkins'
+        branchName = '*/main'
     }
     stages {
         // Connect to git
