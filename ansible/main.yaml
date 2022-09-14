@@ -1,37 +1,29 @@
----
-- name: test
+- name: check kube cluster is up
   hosts: master2
-
   tasks:
-  - name: print environment variable
-    shell: printenv
+    - name: Get Cluster information
+      kubernetes.core.k8s_cluster_info:
+        kubeconfig: ~/admin.conf
+      register: api_status
 
-# - name: check kube cluster is up
-#   hosts: master2
-#   tasks:
-#     - name: Get Cluster information
-#       kubernetes.core.k8s_cluster_info:
-#         kubeconfig: ~/admin.conf
-#       register: api_status
+- name: create cluster
+  import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
+  when: "hostvars['master2']['api_status']['failed'] is true"
 
-# - name: create cluster
-#   import_playbook: "playbooks/infrastructure/kubernetes/playbook.yaml"
-#   when: "hostvars['master2']['api_status']['failed'] is true"
+- name: install monitoring
+  import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
+  vars:
+    chart_name: monitoring
+    chart_src: "../../../../helmCharts"
+    chart_dest: "/tmp/charts"
+    chart_owner: "{{ ansible_user_id }}"
+    chart_group: "{{ ansible_user_id }}"
+    chart_mode: 0644
 
-# - name: install monitoring
-#   import_playbook: "playbooks/infrastructure/monitoring/playbook.yaml"
-#   vars:
-#     chart_name: monitoring
-#     chart_src: "../../../../helmCharts"
-#     chart_dest: "/tmp/charts"
-#     chart_owner: "{{ ansible_user_id }}"
-#     chart_group: "{{ ansible_user_id }}"
-#     chart_mode: 0644
+    values_enabled: false
 
-#     values_enabled: false
+    release_name: "monitoring"
+    release_namespace: "default"
 
-#     release_name: "monitoring"
-#     release_namespace: "default"
-
-#     kubeconfig: ~/admin.conf
+    kubeconfig: ~/admin.conf
 
