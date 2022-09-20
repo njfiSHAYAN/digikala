@@ -168,8 +168,8 @@
        kubernetes_join_command_end: "{{ kubernetes_join_command.stdout }}"
      delegate_to: "{{ item }}"
      loop:
-       - ma-2
-       - wo-1
+       - master2
+       - worker1
 
    - name: Install calico pod network
      shell: |
@@ -195,7 +195,7 @@
   tasks:
 
    - name: Join Master replicas to cluster
-     command: "{{ hostvars['ma-1']['kubernetes_join_command_end'] }} --control-plane --certificate-key {{ hostvars['ma-1']['cert_master_key'] }} "
+     command: "{{ hostvars['master1']['kubernetes_join_command_end'] }} --control-plane --certificate-key {{ hostvars['master1']['cert_master_key'] }} "
 ############################### end of join node to master
 
 ###############################   workers
